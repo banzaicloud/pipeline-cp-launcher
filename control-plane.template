@@ -1,0 +1,631 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation Sample Template EC2InstanceWithSecurityGroupSample: Create
+  an Amazon EC2 instance running the Amazon Linux AMI. The AMI is chosen based
+  on the region in which the stack is run. This example creates an EC2 security
+  group for the instance to give you SSH access. **WARNING** This template
+  creates an Amazon EC2 instance. You will be billed for the AWS resources used
+  if you create a stack from this template.
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType:
+    Description: Control Plane EC2 instance type
+    Type: String
+    Default: t2.medium
+    AllowedValues:
+      - t2.medium
+      - t2.large
+      - m3.medium
+      - m3.large
+      - m3.xlarge
+      - m3.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m4.10xlarge
+      - c3.large
+      - c3.xlarge
+      - c3.2xlarge
+      - c3.4xlarge
+      - c3.8xlarge
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c4.8xlarge
+    ConstraintDescription: must be a valid EC2 instance type.
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  HTTPLocation:
+    Description: The IP address range that can be used to HTTP to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  SecretAccessKey:
+    Description: Secret access key
+    Type: String
+    NoEcho: 'true'
+    ConstraintDescription: >-
+      AWS Secret access keys are—as the name implies—secrets, like your
+      password.
+  AccessKeyID:
+    Description: Access Key ID
+    Type: String
+    NoEcho: 'true'
+    Default: ''
+    ConstraintDescription: You must use your valid AWS Access key id.
+  InstanceName:
+    Description: Instance name
+    Type: String
+    Default: ''
+    ConstraintDescription: Control plane EC2 instance name
+  SmtpServerAddress:
+    Description: SMTP Server Address.
+    Type: String
+    Default: 'localhost:25'
+    ConstraintDescription: ''
+  SmtpUser:
+    Description: SMTP User Name.
+    Type: String
+    Default: alert@example.com
+    ConstraintDescription: ''
+  SmtpPassword:
+    Description: SMTP User Password.
+    NoEcho: 'true'
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
+  SmtpFrom:
+    Description: SMTP From Mail Address
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
+  SmtpTo:
+    Description: SMTP To Mail Address
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
+  SlackWebhookUrl:
+    Description: Slack Webhook URL
+    Type: String
+    Default: ''
+    ConstraintDescription: 'Insert slack webhook url'
+  SlackChannel:
+    Description: Slack Channel Name
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
+  PipelineApiVersion:
+    Description: ''
+    Type: String
+    Default: stable
+    AllowedValues:
+      - stable
+      - latest
+      - incubator
+    ConstraintDescription: ''
+  HelmRepoUser:
+    Description: Banzai Cloud Helm Repo Username.
+    Type: String
+    ConstraintDescription: ''
+  HelmRepoPass:
+    Description: Banzai Cloud Helm Repo Password.
+    NoEcho: 'true'
+    Type: String
+    ConstraintDescription: ''
+
+
+
+  TraefikPass:
+    Description: Traefik Dashboard Password.
+    NoEcho: 'true'
+    Type: String
+    ConstraintDescription: ''
+
+  PipelineIngUser:
+    Description: Pipeline API User.
+    Type: String
+    Default: admin
+    ConstraintDescription: ''
+  PipelineIngPass:
+    Description: Pipeline API Password.
+    NoEcho: 'true'
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
+
+  PromIngUser:
+    Description: Prometheus Name.
+    Type: String
+    Default: admin
+    ConstraintDescription: ''
+  PromIngPass:
+    Description: Prometheus Password.
+    NoEcho: 'true'
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
+
+  GrafanaUser:
+    Description: Grafana Dashboard User.
+    Type: String
+    Default: admin
+    ConstraintDescription: ''
+  GrafanaPass:
+    Description: Grafana Dashboard Password.
+    NoEcho: 'true'
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
+  ImageId:
+    Description: AWS AMI ID
+    Type: String
+    ConstraintDescription: ''
+
+
+Resources:
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      Tags:
+        - Key: Name
+          Value: !Ref InstanceName
+      UserData: !Base64 
+        'Fn::Join':
+          - ''
+          - - |
+              #!/usr/bin/env bash 
+            - |
+              set -x
+            - |+
+
+            - >
+              PUBLICIP=$(curl -s
+              http://169.254.169.254/latest/meta-data/public-ipv4)
+            - >
+              PRIVATEIP=$(curl -s
+              http://169.254.169.254/latest/meta-data/local-ipv4)
+            - PIPELINE_API_VERSION=
+            - !Ref PipelineApiVersion
+            - |+
+
+            - HELM_REPO_USER=
+            - !Ref HelmRepoUser
+            - |+
+
+            - HELM_REPO_PASS=
+            - !Ref HelmRepoPass
+            - |+
+
+
+            - SECRET_ACCESS_KEY=
+            - !Base64 
+              Ref: SecretAccessKey
+            - |+
+
+            - ACCESS_KEY_ID=
+            - !Base64 
+              Ref: AccessKeyID
+            - |+
+
+            - SMTP_SERVER_ADDRESS=
+            - !Ref SmtpServerAddress
+            - |+
+
+            - SMTP_USERNAME=
+            - !Ref SmtpUser
+            - |+
+
+            - SMTP_PASSWORD=
+            - !Ref SmtpPassword
+            - |+
+
+            - SMTP_TO=
+            - !Ref SmtpTo
+            - |+
+
+            - SMTP_FROM=
+            - !Ref SmtpFrom
+            - |+
+
+            - SLACK_WEBHOOK_URL=
+            - !Ref SlackWebhookUrl
+            - |+
+
+            - TRAEFIK_PASS=
+            - !Ref TraefikPass
+            - |+
+
+            - PIPELINE_ING_USER=
+            - !Ref PipelineIngUser
+            - |+
+
+            - PIPELINE_ING_PASS=
+            - !Ref PipelineIngPass
+            - |+
+
+            - PROM_ING_USER=
+            - !Ref PromIngUser
+            - |+
+
+            - PROM_ING_PASS=
+            - !Ref PromIngPass
+            - |+
+
+            - GRAFANA_USER=
+            - !Ref GrafanaUser
+            - |+
+
+            - GRAFANA_PASS=
+            - !Ref GrafanaPass
+            - |+
+
+            - SLACK_CHANNEL=
+            - !Ref SlackChannel
+            - |+
+
+            - |+
+
+            - >
+              kubeadm init --skip-preflight-checks --apiserver-advertise-address
+              ${PRIVATEIP} --apiserver-cert-extra-sans ${PUBLICIP} ${PRIVATEIP}
+            - |+
+
+            - >
+              kubectl apply -f
+              "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version |
+              base64 | tr -d '\n')" --kubeconfig /etc/kubernetes/admin.conf
+            - |+
+
+            - >
+              sed -i -e 's|- --experimental-bootstrap-token-auth=true|-
+              --experimental-bootstrap-token-auth=true\n    -
+              --service-node-port-range=30-32767|'
+              /etc/kubernetes/manifests/kube-apiserver.yaml
+            - |+
+
+            - |
+              mkdir -p $HOME/.kube
+            - |
+              sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+            - |
+              sudo chown $(id -u):$(id -g) $HOME/.kube/config
+            - |+
+
+            - |
+              mkdir -p /home/ubuntu/.kube
+            - |
+              sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+            - |
+              sudo chown ubuntu:ubuntu /home/ubuntu/.kube/config
+            - |
+              export KUBECONFIG=/home/ubuntu/.kube/config
+            - |+
+
+            - |
+              until kubectl get po --all-namespaces
+            - |
+              do
+            - |2
+                sleep 5
+            - |2
+                echo "Waiting...."
+            - |
+              done
+            - |+
+
+            - >
+              kubectl taint nodes $(hostname -s)
+              node-role.kubernetes.io/master:NoSchedule-
+            - |
+              kubectl create serviceaccount --namespace kube-system tiller
+            - >
+              kubectl create clusterrolebinding tiller-cluster-rule
+              --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+            - |
+              helm init --service-account tiller
+            - |+
+
+            - |
+              until helm list
+            - |
+              do
+            - |2
+                echo "Waiting...."
+            - |2
+                kubectl get po --all-namespaces
+            - |2
+                sleep 5
+            - |
+              done
+            - |+
+
+            - >-
+              if [ $PIPELINE_API_VERSION == 'latest' ]; then 
+              cd /opt/helm
+              helm repo add banzaicloud-stable http://$HELM_REPO_USER:$HELM_REPO_PASS@kubernetes-charts.banzaicloud.com;
+              helm repo update;
+              helm repo list;
+              rm -rf pipeline-cp*;
+              helm fetch banzaicloud-stable/pipeline-cp;
+              tar -xvzf pipeline-cp*;
+              rm -rf spark*;
+              helm fetch banzaicloud-stable/spark;
+              tar -xvzf spark*;
+              rm -rf zeppelin-spark*;
+              helm fetch banzaicloud-stable/zeppelin-spark;
+              tar -xvzf zeppelin-spark*; fi
+            - |+
+
+            - |
+              cd /opt/helm/pipeline-cp/
+            - |
+
+            - |
+              cp sample_values.json extra_values.json
+            - |
+
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqsecret "${SECRET_ACCESS_KEY}" '.pipeline.awsSecretAccessKey|=$jqsecret' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqaccid "${ACCESS_KEY_ID}" '.pipeline.awsAccessKeyId|=$jqaccid' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqslackurl "${SLACK_WEBHOOK_URL}" '.pipeline.Slack.WebhookUrl|=$jqslackurl' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqslackchannel "${SLACK_CHANNEL}" '.pipeline.Slack.Channel|=$jqslackchannel' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqslackurl "${SLACK_WEBHOOK_URL}" '.prometheus.alertmanager.slack_api_url|=$jqslackurl' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqslackchannel "${SLACK_CHANNEL}" '.prometheus.alertmanager.slack_channel|=$jqslackchannel' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqsmtpaddr "${SMTP_SERVER_ADDRESS}" '.prometheus.alertmanager.smtp_address|=$jqsmtpaddr' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqsmtpuser "${SMTP_USERNAME}" '.prometheus.alertmanager.smtp_username|=$jqsmtpuser' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqsmtppass "${SMTP_PASSWORD}" '.prometheus.alertmanager.smtp_password|=$jqsmtppass' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqsmtpto "${SMTP_TO}" '.prometheus.alertmanager.smtp_to|=$jqsmtpto' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqsmtpfrom "${SMTP_FROM}" '.prometheus.alertmanager.smtp_from|=$jqsmtpfrom' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqtrafpass "$(openssl passwd -apr1 $TRAEFIK_PASS)" '.traefik.dashboard.auth.basic.admin|=$jqtrafpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqferryinguser "${PIPELINE_ING_USER}" '.pipeline.ingress.user|=$jqferryinguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqferryingpass "$(openssl passwd -apr1 $PIPELINE_ING_PASS)" '.pipeline.ingress.password|=$jqferryingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqprominguser "${PROM_ING_USER}" '.prometheus.ingress.user|=$jqprominguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqpromingpass "$(openssl passwd -apr1 $PROM_ING_PASS)" '.prometheus.ingress.password|=$jqpromingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | jq -r -M --arg jqgrafanauser "${GRAFANA_USER}" '.grafana.server.adminUser|=$jqgrafanauser' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+              cat extra_values.json | jq -r -M --arg jqgrafanapass "${GRAFANA_PASS}" '.grafana.server.adminPassword|=$jqgrafanapass' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+
+            - |
+              cat extra_values.json | json2yaml >> extra_values.yaml 
+            - |
+
+            - |
+              helm install . -f values.yaml -f extra_values.yaml --debug
+            - |
+
+            - |
+              mkdir -p /opt/pipeline/.ssh
+            - |
+              ssh-keygen -t rsa -b 4096 -f  /opt/pipeline/.ssh/id_rsa -N ""
+      SecurityGroups:
+        - !Ref InstanceSecurityGroup
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: '50'
+      ImageId: !Ref ImageId
+
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Enable SSH & HTTP access via port 22, 80'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: !Ref SSHLocation
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: !Ref HTTPLocation
+Outputs:
+  InstanceId:
+    Description: InstanceId of the newly created EC2 instance
+    Value: !Ref EC2Instance
+  AZ:
+    Description: Availability Zone of the newly created EC2 instance
+    Value: !GetAtt 
+      - EC2Instance
+      - AvailabilityZone
+  PublicDNS:
+    Description: Public DNSName of the newly created EC2 instance
+    Value: !GetAtt 
+      - EC2Instance
+      - PublicDnsName
+  PublicIP:
+    Description: Public IP address of the newly created EC2 instance
+    Value: !GetAtt 
+      - EC2Instance
+      - PublicIp
+  Pipeline:
+    Description: Pipeline API Endpoint URL.
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - EC2Instance
+          - PublicIp
+        - /pipeline
+  Grafana:
+    Description: Grafana Dashboard URL.
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - EC2Instance
+          - PublicIp
+        - /grafana
+  PrometheusServer:
+    Description: Prometheus Server Dashboard URL.
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - EC2Instance
+          - PublicIp
+        - /prometheus
+  PrometheusAlertManager:
+    Description: Prometheus Alertmanager Dashboard URL.
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - EC2Instance
+          - PublicIp
+        - /alertmanager
+  SSH:
+    Description: SSH Target
+    Value: !Join 
+      - ''
+      - - ssh ubuntu@
+        - !GetAtt 
+          - EC2Instance
+          - PublicIp
+        - ''
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: Amazon Credentials
+        Parameters:
+          - SecretAccessKey
+          - AccessKeyID
+      - Label:
+          default: Pipeline
+        Parameters:
+          - PipelineApiVersion
+          - HelmRepoUser
+          - HelmRepoPass
+          - PipelineIngUser
+          - PipelineIngPass
+      - Label:
+          default: Alert SMTP Credentials
+        Parameters:
+          - SmtpServerAddress
+          - SmtpUser
+          - SmtpPassword
+          - SmtpTo
+          - SmtpFrom
+      - Label:
+          default: Slack Credentials
+        Parameters:
+          - SlackWebhookUrl
+          - SlackChannel
+      - Label:
+          default: Dashboard Credentials
+        Parameters:
+          - TraefikPass
+          - PromIngUser
+          - PromIngPass
+          - GrafanaUser
+          - GrafanaPass
+
+    ParameterLabels:
+      PipelineApiVersion:
+        default: Pipeline Version
+      HelmRepoUser:
+        default: Helm Username
+      HelmRepoPass:
+        default: Helm Password
+
+      PipelineIngUser:
+        default: Pipeline API User
+      PipelineIngPass:
+        default: Pipeline API Password
+
+      TraefikPass:
+        default: Traefik Dashboard Password
+      PromIngUser:
+        default: Prometheus Name
+      PromIngPass:
+        default: Prometheus Password
+      GrafanaUser:
+        default: Grafana Dashboard User
+      GrafanaPass:
+        default: Grafana Dashboard Password
+
+      SecretAccessKey:
+        default: Amazon secret access key
+      AccessKeyID:
+        default: Amazon access key id
+      SmtpServerAddress:
+        default: Server Address
+      SmtpUser:
+        default: Username
+      SmtpPassword:
+        default: Password
+      SmtpTo:
+        default: To Address
+      SmtpFrom:
+        default: From Address
+      SlackWebhookUrl:
+        default: WebHook
+      SlackChannel:
+        default: Channel
