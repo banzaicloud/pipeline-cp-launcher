@@ -117,17 +117,6 @@ Parameters:
       - latest
       - incubator
     ConstraintDescription: ''
-  HelmRepoUser:
-    Description: Banzai Cloud Helm Repo Username.
-    Type: String
-    ConstraintDescription: ''
-  HelmRepoPass:
-    Description: Banzai Cloud Helm Repo Password.
-    NoEcho: 'true'
-    Type: String
-    ConstraintDescription: ''
-
-
 
   TraefikPass:
     Description: Traefik Dashboard Password.
@@ -202,15 +191,6 @@ Resources:
             - PIPELINE_API_VERSION=
             - !Ref PipelineApiVersion
             - |+
-
-            - HELM_REPO_USER=
-            - !Ref HelmRepoUser
-            - |+
-
-            - HELM_REPO_PASS=
-            - !Ref HelmRepoPass
-            - |+
-
 
             - SECRET_ACCESS_KEY=
             - !Base64 
@@ -357,7 +337,7 @@ Resources:
             - >-
               if [ $PIPELINE_API_VERSION == 'latest' ]; then 
               cd /opt/helm
-              helm repo add banzaicloud-stable http://$HELM_REPO_USER:$HELM_REPO_PASS@kubernetes-charts.banzaicloud.com;
+              helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com;
               helm repo update;
               helm repo list;
               rm -rf pipeline-cp*;
@@ -561,8 +541,6 @@ Metadata:
           default: Pipeline
         Parameters:
           - PipelineApiVersion
-          - HelmRepoUser
-          - HelmRepoPass
           - PipelineIngUser
           - PipelineIngPass
       - Label:
