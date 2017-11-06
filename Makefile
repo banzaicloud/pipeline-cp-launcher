@@ -1,6 +1,6 @@
 STACK_NAME ?=pipeline-controlplane-$(USER)
 INSTANCE_NAME ?=$(STACK_NAME)
-KEY_NAME ?=""
+
 SLACK_URL ?=""
 SLACK_CHANNEL ?=""
 SMTP_SERVER_ADDRESS ?=""
@@ -8,8 +8,7 @@ SMTP_USERNAME ?=""
 SMTP_PASSWORD ?=""
 SMTP_TO ?=""
 SMTP_FROM ?=""
-HELM_REPO_USER ?=""
-HELM_REPO_PASS ?=""
+
 
 .DEFAULT_GOAL := list
 .PHONY: list
@@ -39,8 +38,6 @@ create: .check-env
 		ParameterKey=SmtpPassword,ParameterValue=$(SMTP_PASSWORD) \
 		ParameterKey=SmtpTo,ParameterValue=$(SMTP_TO) \
 		ParameterKey=SmtpFrom,ParameterValue=$(SMTP_FROM) \
-		ParameterKey=HelmRepoUser,ParameterValue=$(HELM_REPO_USER) \
-		ParameterKey=HelmRepoPass,ParameterValue=$(HELM_REPO_PASS) \
 		ParameterKey=TraefikPass,ParameterValue=$(TRAEFIK_PASS) \
 		ParameterKey=PipelineIngPass,ParameterValue=$(PIPELINE_ING_PASS) \
 		ParameterKey=PromIngPass,ParameterValue=$(PROM_ING_PASS)
@@ -58,6 +55,9 @@ terminate: .check-env
  	endif
  	ifndef IMAGE_ID
  		$(error IMAGE_ID is undefined)
+ 	endif
+ 	ifndef KEY_NAME
+ 		$(error KEY_NAME is undefined)
  	endif
  	ifndef TRAEFIK_PASS
  		$(error TRAEFIK_PASS is undefined)
