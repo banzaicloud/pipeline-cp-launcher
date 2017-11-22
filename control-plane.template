@@ -80,23 +80,23 @@ Parameters:
   SmtpUser:
     Description: SMTP User Name.
     Type: String
-    Default: alert@example.com
+    Default: 'alert@example.com'
     ConstraintDescription: ''
   SmtpPassword:
     Description: SMTP User Password.
     NoEcho: 'true'
     Type: String
-    Default: ''
+    Default: 'user_password'
     ConstraintDescription: ''
   SmtpFrom:
     Description: SMTP From Mail Address
     Type: String
-    Default: ''
+    Default: 'alert@example.com'
     ConstraintDescription: ''
   SmtpTo:
     Description: SMTP To Mail Address
     Type: String
-    Default: ''
+    Default: 'to@example.com'
     ConstraintDescription: ''
   SlackWebhookUrl:
     Description: Slack Webhook URL
@@ -272,8 +272,8 @@ Resources:
             - |+
 
             - >
-              sed -i -e 's|- --experimental-bootstrap-token-auth=true|-
-              --experimental-bootstrap-token-auth=true\n    -
+              sed -i -e 's|- --insecure-port=0|-
+              --insecure-port=0\n    -
               --service-node-port-range=30-32767|'
               /etc/kubernetes/manifests/kube-apiserver.yaml
             - |+
@@ -436,7 +436,7 @@ Resources:
             - |
 
             - |
-              helm install . -f values.yaml -f extra_values.yaml --debug
+              helm install . -f values.yaml -f extra_values.yaml --debug --wait --timeout 600
             - |
 
             - |
