@@ -135,6 +135,11 @@ Parameters:
     Type: String
     Default: ''
     ConstraintDescription: ''
+  PipelineImageTag:
+    Description: Pipeline docker image tag
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
 
   PromIngUser:
     Description: Prometheus Name.
@@ -164,6 +169,22 @@ Parameters:
     Type: String
     ConstraintDescription: ''
 
+  DroneOrgs:
+    Description: Github organizations.
+    Type: String
+    Default: ''
+    ConstraintDescription: 'Comma-separated list of authorized organizations.'
+  DroneGithubClient:
+    Description: Github Client
+    Type: String
+    Default: ''
+    ConstraintDescription: 'Github oauth2 client id.'
+  DroneGithubSecret:
+    Description: Github Secret.
+    NoEcho: 'true'
+    Type: String
+    Default: ''
+    ConstraintDescription: 'Github oauth2 client secret.'
 
 Resources:
   EC2Instance:
@@ -173,11 +194,11 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref InstanceName
-      UserData: !Base64 
+      UserData: !Base64
         'Fn::Join':
           - ''
           - - |
-              #!/usr/bin/env bash 
+              #!/usr/bin/env bash
             - |
               set -x
             - |+
@@ -193,12 +214,12 @@ Resources:
             - |+
 
             - SECRET_ACCESS_KEY=
-            - !Base64 
+            - !Base64
               Ref: SecretAccessKey
             - |+
 
             - ACCESS_KEY_ID=
-            - !Base64 
+            - !Base64
               Ref: AccessKeyID
             - |+
 
@@ -238,6 +259,10 @@ Resources:
             - !Ref PipelineIngPass
             - |+
 
+            - PIPELINE_IMAGE_TAG=
+            - !Ref PipelineImageTag
+            - |+
+
             - PROM_ING_USER=
             - !Ref PromIngUser
             - |+
@@ -258,6 +283,16 @@ Resources:
             - !Ref SlackChannel
             - |+
 
+            - DRONE_ORGS=
+            - !Ref DroneOrgs
+            - |+
+
+            - DRONE_GITHUB_CLIENT=
+            - !Ref DroneGithubClient
+            - |+
+
+            - DRONE_GITHUB_SECRET=
+            - !Ref DroneGithubSecret
             - |+
 
             - >
@@ -334,111 +369,80 @@ Resources:
               done
             - |+
 
-            - >-
-              if [ $PIPELINE_API_VERSION == 'latest' ]; then 
-              cd /opt/helm
-              helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com;
-              helm repo update;
-              helm repo list;
-              rm -rf pipeline-cp*;
-              helm fetch banzaicloud-stable/pipeline-cp;
-              tar -xvzf pipeline-cp*;
-              rm -rf spark*;
-              helm fetch banzaicloud-stable/spark;
-              tar -xvzf spark*;
-              rm -rf zeppelin-spark*;
-              helm fetch banzaicloud-stable/zeppelin-spark;
-              tar -xvzf zeppelin-spark*; fi
+            - |
+                mkdir /opt/helm
+            - |2
+                cd /opt/helm
+            - |2
+                helm init -c
+            - |2
+                helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com
+            - |2
+                helm repo update
+            - |2
+                helm repo list
+            - |2
+                helm fetch banzaicloud-stable/pipeline-cluster --untar
+            - |2
+                helm fetch banzaicloud-stable/pipeline-cp --untar
+            - |2
+                helm fetch banzaicloud-stable/spark --untar
+            - |2
+                helm fetch banzaicloud-stable/zeppelin-spark --untar
             - |+
 
             - |
               cd /opt/helm/pipeline-cp/
             - |
-
-            - |
               cp sample_values.json extra_values.json
-            - |
-
-
             - |
               cat extra_values.json | jq -r -M --arg jqsecret "${SECRET_ACCESS_KEY}" '.pipeline.awsSecretAccessKey|=$jqsecret' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
-            - |
               cat extra_values.json | jq -r -M --arg jqaccid "${ACCESS_KEY_ID}" '.pipeline.awsAccessKeyId|=$jqaccid' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-
             - |
               cat extra_values.json | jq -r -M --arg jqslackurl "${SLACK_WEBHOOK_URL}" '.pipeline.Slack.WebhookUrl|=$jqslackurl' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
-            - |
               cat extra_values.json | jq -r -M --arg jqslackchannel "${SLACK_CHANNEL}" '.pipeline.Slack.Channel|=$jqslackchannel' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-
             - |
               cat extra_values.json | jq -r -M --arg jqslackurl "${SLACK_WEBHOOK_URL}" '.prometheus.alertmanager.slack_api_url|=$jqslackurl' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
-            - |
               cat extra_values.json | jq -r -M --arg jqslackchannel "${SLACK_CHANNEL}" '.prometheus.alertmanager.slack_channel|=$jqslackchannel' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-
             - |
               cat extra_values.json | jq -r -M --arg jqsmtpaddr "${SMTP_SERVER_ADDRESS}" '.prometheus.alertmanager.smtp_address|=$jqsmtpaddr' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
-            - |
               cat extra_values.json | jq -r -M --arg jqsmtpuser "${SMTP_USERNAME}" '.prometheus.alertmanager.smtp_username|=$jqsmtpuser' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-
             - |
               cat extra_values.json | jq -r -M --arg jqsmtppass "${SMTP_PASSWORD}" '.prometheus.alertmanager.smtp_password|=$jqsmtppass' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
-            - |
               cat extra_values.json | jq -r -M --arg jqsmtpto "${SMTP_TO}" '.prometheus.alertmanager.smtp_to|=$jqsmtpto' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-
             - |
               cat extra_values.json | jq -r -M --arg jqsmtpfrom "${SMTP_FROM}" '.prometheus.alertmanager.smtp_from|=$jqsmtpfrom' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
-            - |
               cat extra_values.json | jq -r -M --arg jqtrafpass "$(openssl passwd -apr1 $TRAEFIK_PASS)" '.traefik.dashboard.auth.basic.admin|=$jqtrafpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-
             - |
               cat extra_values.json | jq -r -M --arg jqferryinguser "${PIPELINE_ING_USER}" '.pipeline.ingress.user|=$jqferryinguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
-            - |
               cat extra_values.json | jq -r -M --arg jqferryingpass "$(openssl passwd -apr1 $PIPELINE_ING_PASS)" '.pipeline.ingress.password|=$jqferryingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-
             - |
               cat extra_values.json | jq -r -M --arg jqprominguser "${PROM_ING_USER}" '.prometheus.ingress.user|=$jqprominguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
-            - |
               cat extra_values.json | jq -r -M --arg jqpromingpass "$(openssl passwd -apr1 $PROM_ING_PASS)" '.prometheus.ingress.password|=$jqpromingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-
             - |
               cat extra_values.json | jq -r -M --arg jqgrafanauser "${GRAFANA_USER}" '.grafana.server.adminUser|=$jqgrafanauser' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
               cat extra_values.json | jq -r -M --arg jqgrafanapass "${GRAFANA_PASS}" '.grafana.server.adminPassword|=$jqgrafanapass' >  extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
+              cat extra_values.json | jq -r -M --arg jqdroneorgs "${DRONE_ORGS}" '.drone.server.env.DRONE_ORGS|=$jqdroneorgs' >  extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-              cat extra_values.json | json2yaml >> extra_values.yaml 
+              cat extra_values.json | jq -r -M --arg jqdronegithubclient "${DRONE_GITHUB_CLIENT}" '.drone.server.env.DRONE_GITHUB_CLIENT|=$jqdronegithubclient' >  extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-
+              cat extra_values.json | jq -r -M --arg jqdronegithubsecret "${DRONE_GITHUB_SECRET}" '.drone.server.env.DRONE_GITHUB_SECRET|=$jqdronegithubsecret' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+              cat extra_values.json | jq -r -M --arg jqpiplineimagetag "${PIPELINE_IMAGE_TAG}" '.pipeline.image.tag|=$jqpiplineimagetag' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+              cat extra_values.json | json2yaml >> extra_values.yaml
             - |
               helm install . -f values.yaml -f extra_values.yaml --debug --wait --timeout 600
-            - |
-
             - |
               mkdir -p /opt/pipeline/.ssh
             - |
@@ -471,61 +475,61 @@ Outputs:
     Value: !Ref EC2Instance
   AZ:
     Description: Availability Zone of the newly created EC2 instance
-    Value: !GetAtt 
+    Value: !GetAtt
       - EC2Instance
       - AvailabilityZone
   PublicDNS:
     Description: Public DNSName of the newly created EC2 instance
-    Value: !GetAtt 
+    Value: !GetAtt
       - EC2Instance
       - PublicDnsName
   PublicIP:
     Description: Public IP address of the newly created EC2 instance
-    Value: !GetAtt 
+    Value: !GetAtt
       - EC2Instance
       - PublicIp
   Pipeline:
     Description: Pipeline API Endpoint URL.
-    Value: !Join 
+    Value: !Join
       - ''
       - - 'http://'
-        - !GetAtt 
+        - !GetAtt
           - EC2Instance
           - PublicIp
         - /pipeline
   Grafana:
     Description: Grafana Dashboard URL.
-    Value: !Join 
+    Value: !Join
       - ''
       - - 'http://'
-        - !GetAtt 
+        - !GetAtt
           - EC2Instance
           - PublicIp
         - /grafana
   PrometheusServer:
     Description: Prometheus Server Dashboard URL.
-    Value: !Join 
+    Value: !Join
       - ''
       - - 'http://'
-        - !GetAtt 
+        - !GetAtt
           - EC2Instance
           - PublicIp
         - /prometheus
   PrometheusAlertManager:
     Description: Prometheus Alertmanager Dashboard URL.
-    Value: !Join 
+    Value: !Join
       - ''
       - - 'http://'
-        - !GetAtt 
+        - !GetAtt
           - EC2Instance
           - PublicIp
         - /alertmanager
   SSH:
     Description: SSH Target
-    Value: !Join 
+    Value: !Join
       - ''
       - - ssh ubuntu@
-        - !GetAtt 
+        - !GetAtt
           - EC2Instance
           - PublicIp
         - ''
@@ -564,6 +568,12 @@ Metadata:
           - PromIngPass
           - GrafanaUser
           - GrafanaPass
+      - Label:
+          default: Drone-Ci Credentials
+        Parameters:
+          - DroneOrgs
+          - DroneGithubClient
+          - DroneGithubSecret
 
     ParameterLabels:
       PipelineApiVersion:

@@ -9,7 +9,6 @@ SMTP_PASSWORD ?=""
 SMTP_TO ?=""
 SMTP_FROM ?=""
 
-
 .DEFAULT_GOAL := list
 .PHONY: list
 
@@ -40,7 +39,11 @@ create: .check-env
 		ParameterKey=SmtpFrom,ParameterValue=$(SMTP_FROM) \
 		ParameterKey=TraefikPass,ParameterValue=$(TRAEFIK_PASS) \
 		ParameterKey=PipelineIngPass,ParameterValue=$(PIPELINE_ING_PASS) \
-		ParameterKey=PromIngPass,ParameterValue=$(PROM_ING_PASS)
+		ParameterKey=PromIngPass,ParameterValue=$(PROM_ING_PASS) \
+		ParameterKey=DroneOrgs,ParameterValue=$(DRONE_ORGS) \
+		ParameterKey=DroneGithubClient,ParameterValue=$(DRONE_GITHUB_CLIENT) \
+		ParameterKey=DroneGithubSecret,ParameterValue=$(DRONE_GITHUB_SECRET) \
+		ParameterKey=PipelineImageTag,ParameterValue=$(PIPELINE_IMAGE_TAG) \
 
 terminate: .check-env
 	aws cloudformation delete-stack \
@@ -67,6 +70,9 @@ terminate: .check-env
  	endif
  	ifndef PROM_ING_PASS
  		$(error PROM_ING_PASS is undefined)
+ 	endif
+ 	ifndef PIPELINE_IMAGE_TAG
+ 		$(error PIPELINE_IMAGE_TAG is undefined)
  	endif
 
 validate:
