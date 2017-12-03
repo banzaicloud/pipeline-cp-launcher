@@ -37,7 +37,6 @@ create: .check-env
 		ParameterKey=SmtpPassword,ParameterValue=$(SMTP_PASSWORD) \
 		ParameterKey=SmtpTo,ParameterValue=$(SMTP_TO) \
 		ParameterKey=SmtpFrom,ParameterValue=$(SMTP_FROM) \
-		ParameterKey=TraefikPass,ParameterValue=$(TRAEFIK_PASS) \
 		ParameterKey=PipelineIngPass,ParameterValue=$(PIPELINE_ING_PASS) \
 		ParameterKey=PromIngPass,ParameterValue=$(PROM_ING_PASS) \
 		ParameterKey=DroneOrgs,ParameterValue=$(DRONE_ORGS) \
@@ -61,9 +60,6 @@ terminate: .check-env
  	endif
  	ifndef KEY_NAME
  		$(error KEY_NAME is undefined)
- 	endif
- 	ifndef TRAEFIK_PASS
- 		$(error TRAEFIK_PASS is undefined)
  	endif
  	ifndef PIPELINE_ING_PASS
  		$(error PIPELINE_ING_PASS is undefined)

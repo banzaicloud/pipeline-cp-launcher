@@ -55,14 +55,14 @@ Parameters:
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   SecretAccessKey:
-    Description: Secret access key
+    Description: ''
     Type: String
     NoEcho: 'true'
     ConstraintDescription: >-
       AWS Secret access keys are—as the name implies—secrets, like your
       password.
   AccessKeyID:
-    Description: Access Key ID
+    Description: ''
     Type: String
     NoEcho: 'true'
     Default: ''
@@ -73,38 +73,38 @@ Parameters:
     Default: ''
     ConstraintDescription: Control plane EC2 instance name
   SmtpServerAddress:
-    Description: SMTP Server Address.
+    Description: ''
     Type: String
     Default: 'localhost:25'
     ConstraintDescription: ''
   SmtpUser:
-    Description: SMTP User Name.
+    Description: ''
     Type: String
     Default: 'alert@example.com'
     ConstraintDescription: ''
   SmtpPassword:
-    Description: SMTP User Password.
+    Description: ''
     NoEcho: 'true'
     Type: String
     Default: 'user_password'
     ConstraintDescription: ''
   SmtpFrom:
-    Description: SMTP From Mail Address
+    Description: ''
     Type: String
     Default: 'alert@example.com'
     ConstraintDescription: ''
   SmtpTo:
-    Description: SMTP To Mail Address
+    Description: ''
     Type: String
     Default: 'to@example.com'
     ConstraintDescription: ''
   SlackWebhookUrl:
     Description: Slack Webhook URL
     Type: String
-    Default: ''
+    Default: 'https://hooks.slack.com/'
     ConstraintDescription: 'Insert slack webhook url'
   SlackChannel:
-    Description: Slack Channel Name
+    Description: 'Specify a Slack channel by name with "channel": "#other-channel", or send a Slackbot message to a specific user with "channel": "@username"'
     Type: String
     Default: ''
     ConstraintDescription: ''
@@ -118,19 +118,13 @@ Parameters:
       - incubator
     ConstraintDescription: ''
 
-  TraefikPass:
-    Description: Traefik Dashboard Password.
-    NoEcho: 'true'
-    Type: String
-    ConstraintDescription: ''
-
   PipelineIngUser:
-    Description: Pipeline API User.
+    Description: ''
     Type: String
     Default: admin
     ConstraintDescription: ''
   PipelineIngPass:
-    Description: Pipeline API Password.
+    Description: ''
     NoEcho: 'true'
     Type: String
     Default: ''
@@ -142,24 +136,24 @@ Parameters:
     ConstraintDescription: ''
 
   PromIngUser:
-    Description: Prometheus Name.
+    Description: ''
     Type: String
     Default: admin
     ConstraintDescription: ''
   PromIngPass:
-    Description: Prometheus Password.
+    Description: ''
     NoEcho: 'true'
     Type: String
     Default: ''
     ConstraintDescription: ''
 
   GrafanaUser:
-    Description: Grafana Dashboard User.
+    Description: ''
     Type: String
     Default: admin
     ConstraintDescription: ''
   GrafanaPass:
-    Description: Grafana Dashboard Password.
+    Description: ''
     NoEcho: 'true'
     Type: String
     Default: ''
@@ -170,21 +164,21 @@ Parameters:
     ConstraintDescription: ''
 
   DroneOrgs:
-    Description: Github organizations.
+    Description: Comma-separated list of authorized Github organizations.
     Type: String
     Default: ''
-    ConstraintDescription: 'Comma-separated list of authorized organizations.'
+    ConstraintDescription: ''
   DroneGithubClient:
-    Description: Github Client
+    Description: Github oauth2 client id.
     Type: String
     Default: ''
-    ConstraintDescription: 'Github oauth2 client id.'
+    ConstraintDescription: ''
   DroneGithubSecret:
-    Description: Github Secret.
+    Description: Github oauth2 client secret.
     NoEcho: 'true'
     Type: String
     Default: ''
-    ConstraintDescription: 'Github oauth2 client secret.'
+    ConstraintDescription: ''
 
 Resources:
   EC2Instance:
@@ -245,10 +239,6 @@ Resources:
 
             - SLACK_WEBHOOK_URL=
             - !Ref SlackWebhookUrl
-            - |+
-
-            - TRAEFIK_PASS=
-            - !Ref TraefikPass
             - |+
 
             - PIPELINE_ING_USER=
@@ -418,8 +408,6 @@ Resources:
             - |
               cat extra_values.json | jq -r -M --arg jqsmtpfrom "${SMTP_FROM}" '.prometheus.alertmanager.smtp_from|=$jqsmtpfrom' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-              cat extra_values.json | jq -r -M --arg jqtrafpass "$(openssl passwd -apr1 $TRAEFIK_PASS)" '.traefik.dashboard.auth.basic.admin|=$jqtrafpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
               cat extra_values.json | jq -r -M --arg jqferryinguser "${PIPELINE_ING_USER}" '.pipeline.ingress.user|=$jqferryinguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
               cat extra_values.json | jq -r -M --arg jqferryingpass "$(openssl passwd -apr1 $PIPELINE_ING_PASS)" '.pipeline.ingress.password|=$jqferryingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
@@ -537,16 +525,18 @@ Metadata:
   'AWS::CloudFormation::Interface':
     ParameterGroups:
       - Label:
-          default: Amazon Credentials
+          default: AWS Credentials
         Parameters:
           - SecretAccessKey
           - AccessKeyID
+
       - Label:
-          default: Pipeline
+          default: Banzai Pipeline Credentials
         Parameters:
           - PipelineApiVersion
           - PipelineIngUser
           - PipelineIngPass
+
       - Label:
           default: Alert SMTP Credentials
         Parameters:
@@ -555,19 +545,25 @@ Metadata:
           - SmtpPassword
           - SmtpTo
           - SmtpFrom
+
       - Label:
           default: Slack Credentials
         Parameters:
           - SlackWebhookUrl
           - SlackChannel
+
       - Label:
-          default: Dashboard Credentials
+          default: Grafana Dashboard
         Parameters:
-          - TraefikPass
-          - PromIngUser
-          - PromIngPass
           - GrafanaUser
           - GrafanaPass
+
+      - Label:
+          default: Prometheus Dashboard
+        Parameters:
+          - PromIngUser
+          - PromIngPass
+
       - Label:
           default: Drone-Ci Credentials
         Parameters:
@@ -578,31 +574,33 @@ Metadata:
     ParameterLabels:
       PipelineApiVersion:
         default: Pipeline Version
-      HelmRepoUser:
-        default: Helm Username
-      HelmRepoPass:
-        default: Helm Password
 
       PipelineIngUser:
-        default: Pipeline API User
+        default: API Username
       PipelineIngPass:
-        default: Pipeline API Password
+        default: API Password
 
-      TraefikPass:
-        default: Traefik Dashboard Password
       PromIngUser:
-        default: Prometheus Name
+        default: Username
       PromIngPass:
-        default: Prometheus Password
+        default: Password
       GrafanaUser:
-        default: Grafana Dashboard User
+        default: Username
       GrafanaPass:
-        default: Grafana Dashboard Password
+        default: Password
+
+      DroneOrgs:
+        default: GitHub Orgs
+      DroneGithubClient:
+        default: Github Client
+      DroneGithubSecret:
+        default: Github Secret
+
 
       SecretAccessKey:
-        default: Amazon secret access key
+        default: Secret Access Key
       AccessKeyID:
-        default: Amazon access key id
+        default: Access Key ID
       SmtpServerAddress:
         default: Server Address
       SmtpUser:
