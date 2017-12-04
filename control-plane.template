@@ -132,7 +132,7 @@ Parameters:
   PipelineImageTag:
     Description: Pipeline docker image tag
     Type: String
-    Default: ''
+    Default: '0.1.0'
     ConstraintDescription: ''
 
   PromIngUser:
@@ -159,7 +159,7 @@ Parameters:
     Default: ''
     ConstraintDescription: ''
   ImageId:
-    Description: AWS AMI ID
+    Description: Pick the image id from here https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.1.0/README.md
     Type: String
     ConstraintDescription: ''
 
@@ -615,3 +615,6 @@ Metadata:
         default: WebHook
       SlackChannel:
         default: Channel
+
+      ImageId:
+        default: AWS AMI ID
