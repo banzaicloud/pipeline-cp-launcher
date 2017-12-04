@@ -163,17 +163,17 @@ Parameters:
     Type: String
     ConstraintDescription: ''
 
-  DroneOrgs:
+  GithubOrgs:
     Description: Comma-separated list of authorized Github organizations.
     Type: String
     Default: ''
     ConstraintDescription: ''
-  DroneGithubClient:
+  GithubClient:
     Description: Github oauth2 client id.
     Type: String
     Default: ''
     ConstraintDescription: ''
-  DroneGithubSecret:
+  GithubSecret:
     Description: Github oauth2 client secret.
     NoEcho: 'true'
     Type: String
@@ -274,15 +274,15 @@ Resources:
             - |+
 
             - DRONE_ORGS=
-            - !Ref DroneOrgs
+            - !Ref GithubOrgs
             - |+
 
             - DRONE_GITHUB_CLIENT=
-            - !Ref DroneGithubClient
+            - !Ref GithubClient
             - |+
 
             - DRONE_GITHUB_SECRET=
-            - !Ref DroneGithubSecret
+            - !Ref GithubSecret
             - |+
 
             - >
@@ -565,11 +565,11 @@ Metadata:
           - PromIngPass
 
       - Label:
-          default: Drone-Ci Credentials
+          default: Banzai-Ci Credentials
         Parameters:
-          - DroneOrgs
-          - DroneGithubClient
-          - DroneGithubSecret
+          - GithubOrgs
+          - GithubClient
+          - GithubSecret
 
     ParameterLabels:
       PipelineApiVersion:
@@ -589,11 +589,11 @@ Metadata:
       GrafanaPass:
         default: Password
 
-      DroneOrgs:
+      GithubOrgs:
         default: GitHub Orgs
-      DroneGithubClient:
+      GithubClient:
         default: Github Client
-      DroneGithubSecret:
+      GithubSecret:
         default: Github Secret
 
 
