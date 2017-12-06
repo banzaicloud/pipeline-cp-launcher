@@ -68,7 +68,7 @@ Parameters:
     Default: ''
     ConstraintDescription: You must use your valid AWS Access key id.
   InstanceName:
-    Description: Instance name
+    Description: ''
     Type: String
     Default: ''
     ConstraintDescription: Control plane EC2 instance name
@@ -527,30 +527,30 @@ Metadata:
       - Label:
           default: AWS Credentials
         Parameters:
-          - SecretAccessKey
           - AccessKeyID
+          - SecretAccessKey
 
+      - Label:
+          default: Control Plane Instance Config
+        Parameters:
+          - InstanceName
+          - InstanceType
+          - ImageId
+          - KeyName
+
+      - Label:
       - Label:
           default: Banzai Pipeline Credentials
         Parameters:
-          - PipelineApiVersion
           - PipelineIngUser
           - PipelineIngPass
 
       - Label:
-          default: Alert SMTP Credentials
+          default: Banzai-Ci Credentials
         Parameters:
-          - SmtpServerAddress
-          - SmtpUser
-          - SmtpPassword
-          - SmtpTo
-          - SmtpFrom
-
-      - Label:
-          default: Slack Credentials
-        Parameters:
-          - SlackWebhookUrl
-          - SlackChannel
+          - GithubOrgs
+          - GithubClient
+          - GithubSecret
 
       - Label:
           default: Grafana Dashboard
@@ -565,11 +565,33 @@ Metadata:
           - PromIngPass
 
       - Label:
-          default: Banzai-Ci Credentials
+          default: Security Options
         Parameters:
-          - GithubOrgs
-          - GithubClient
-          - GithubSecret
+          - HTTPLocation
+          - SSHLocation
+
+
+      - Label:
+          default: Advanced Pipeline Options
+        Parameters:
+          - PipelineApiVersion
+          - PipelineImageTag
+
+      - Label:
+          default: Slack Credentials (experimental feature)
+        Parameters:
+          - SlackWebhookUrl
+          - SlackChannel
+
+      - Label:
+          default: Alert SMTP Credentials (experimental feature)
+        Parameters:
+          - SmtpServerAddress
+          - SmtpUser
+          - SmtpPassword
+          - SmtpTo
+          - SmtpFrom
+
 
     ParameterLabels:
       PipelineApiVersion:
@@ -617,4 +639,4 @@ Metadata:
         default: Channel
 
       ImageId:
-        default: AWS AMI ID
+        default: AWS Image ID
