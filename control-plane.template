@@ -539,7 +539,6 @@ Metadata:
           - KeyName
 
       - Label:
-      - Label:
           default: Banzai Pipeline Credentials
         Parameters:
           - PipelineIngUser

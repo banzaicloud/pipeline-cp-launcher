@@ -39,9 +39,9 @@ create: .check-env
 		ParameterKey=SmtpFrom,ParameterValue=$(SMTP_FROM) \
 		ParameterKey=PipelineIngPass,ParameterValue=$(PIPELINE_ING_PASS) \
 		ParameterKey=PromIngPass,ParameterValue=$(PROM_ING_PASS) \
-		ParameterKey=DroneOrgs,ParameterValue=$(DRONE_ORGS) \
-		ParameterKey=DroneGithubClient,ParameterValue=$(DRONE_GITHUB_CLIENT) \
-		ParameterKey=DroneGithubSecret,ParameterValue=$(DRONE_GITHUB_SECRET) \
+		ParameterKey=GithubOrgs,ParameterValue=$(DRONE_ORGS) \
+		ParameterKey=GithubClient,ParameterValue=$(DRONE_GITHUB_CLIENT) \
+		ParameterKey=GithubSecret,ParameterValue=$(DRONE_GITHUB_SECRET) \
 		ParameterKey=PipelineImageTag,ParameterValue=$(PIPELINE_IMAGE_TAG) \
 
 terminate: .check-env
