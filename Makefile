@@ -30,6 +30,7 @@ create: .check-env
 		ParameterKey=SecretAccessKey,ParameterValue=$(AWS_SECRET_ACCESS_KEY) \
 		ParameterKey=ImageId,ParameterValue=$(IMAGE_ID) \
 		ParameterKey=KeyName,ParameterValue=$(KEY_NAME) \
+		ParameterKey=InstanceType,ParameterValue=$(AWS_INTANCE_TYPE) \
 		ParameterKey=SlackWebhookUrl,ParameterValue=$(SLACK_URL) \
 		ParameterKey=SlackChannel,ParameterValue=$(SLACK_CHANNEL) \
 		ParameterKey=SmtpServerAddress,ParameterValue=$(SMTP_SERVER_ADDRESS) \
