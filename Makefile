@@ -44,33 +44,44 @@ create: .check-env
 		ParameterKey=GithubClient,ParameterValue=$(DRONE_GITHUB_CLIENT) \
 		ParameterKey=GithubSecret,ParameterValue=$(DRONE_GITHUB_SECRET) \
 		ParameterKey=PipelineImageTag,ParameterValue=$(PIPELINE_IMAGE_TAG) \
+		ParameterKey=AzureClientId,ParameterValue=$(AZURE_CLIENT_ID) \
+		ParameterKey=AzureClientSecret,ParameterValue=$(AZURE_CLIENT_SECRET) \
+		ParameterKey=AzureSubscriptionId,ParameterValue=$(AZURE_SUBSCRIPTION_ID) \
+		ParameterKey=AzureTenantId,ParameterValue=$(AZURE_TENANT_ID) \
 
-terminate: .check-env
+terminate:
 	aws cloudformation delete-stack \
 		--stack-name $(STACK_NAME)
 
 .check-env:
- 	ifndef AWS_ACCESS_KEY_ID
- 		$(error AWS_ACCESS_KEY_ID is undefined)
- 	endif
- 	ifndef AWS_SECRET_ACCESS_KEY
- 		$(error AWS_SECRET_ACCESS_KEY is undefined)
- 	endif
- 	ifndef IMAGE_ID
- 		$(error IMAGE_ID is undefined)
- 	endif
- 	ifndef KEY_NAME
- 		$(error KEY_NAME is undefined)
- 	endif
- 	ifndef PIPELINE_ING_PASS
- 		$(error PIPELINE_ING_PASS is undefined)
- 	endif
- 	ifndef PROM_ING_PASS
- 		$(error PROM_ING_PASS is undefined)
- 	endif
- 	ifndef PIPELINE_IMAGE_TAG
- 		$(error PIPELINE_IMAGE_TAG is undefined)
- 	endif
+
+ifndef AWS_ACCESS_KEY_ID
+	$(error AWS_ACCESS_KEY_ID is undefined)
+endif
+
+ifndef AWS_SECRET_ACCESS_KEY
+	$(error AWS_SECRET_ACCESS_KEY is undefined)
+endif
+
+ifndef IMAGE_ID
+	$(error IMAGE_ID is undefined)
+endif
+
+ifndef KEY_NAME
+	$(error KEY_NAME is undefined)
+endif
+
+ifndef PIPELINE_ING_PASS
+	$(error PIPELINE_ING_PASS is undefined)
+endif
+
+ifndef PROM_ING_PASS
+	$(error PROM_ING_PASS is undefined)
+endif
+
+ifndef PIPELINE_IMAGE_TAG
+	$(error PIPELINE_IMAGE_TAG is undefined)
+endif
 
 validate:
 	aws cloudformation validate-template --template-body file://control-plane.template

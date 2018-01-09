@@ -180,6 +180,28 @@ Parameters:
     Default: ''
     ConstraintDescription: ''
 
+  AzureClientId:
+    Description: ''
+    Type: String
+    Default: ''
+    ConstraintDescription: Azure Client Id
+  AzureClientSecret:
+    Description: ''
+    NoEcho: 'true'
+    Type: String
+    Default: ''
+    ConstraintDescription: Azure Client Secret
+  AzureTenantId:
+    Description: ''
+    Type: String
+    Default: ''
+    ConstraintDescription: Azure Tenant Id
+  AzureSubscriptionId:
+    Description: ''
+    Type: String
+    Default: ''
+    ConstraintDescription: Azure Subscription Id
+
 Resources:
   EC2Instance:
     Type: 'AWS::EC2::Instance'
@@ -283,6 +305,26 @@ Resources:
 
             - DRONE_GITHUB_SECRET=
             - !Ref GithubSecret
+            - |+
+
+            - AZURE_CLIENT_ID=
+            - !Base64
+              Ref: AzureClientId
+            - |+
+
+            - AZURE_CLIENT_SECRET=
+            - !Base64
+              Ref: AzureClientSecret
+            - |+
+
+            - AZURE_SUBSCRIPTION_ID=
+            - !Base64
+              Ref: AzureSubscriptionId
+            - |+
+
+            - AZURE_TENANT_ID=
+            - !Base64
+              Ref: AzureTenantId
             - |+
 
             - >
@@ -428,6 +470,14 @@ Resources:
             - |
               cat extra_values.json | jq -r -M --arg jqpiplineimagetag "${PIPELINE_IMAGE_TAG}" '.pipeline.image.tag|=$jqpiplineimagetag' >  extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
+              cat extra_values.json | jq -r -M --arg jqpiplineazureclientid "${AZURE_CLIENT_ID}" '.pipeline.azureClientId|=$jqpiplineazureclientid' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+              cat extra_values.json | jq -r -M --arg jqpiplineazureclientsecret "${AZURE_CLIENT_SECRET}" '.pipeline.azureClientSecret|=$jqpiplineazureclientsecret' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+              cat extra_values.json | jq -r -M --arg jqpiplineazuresubscriptionid "${AZURE_SUBSCRIPTION_ID}" '.pipeline.azureSubscriptionId|=$jqpiplineazuresubscriptionid' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+              cat extra_values.json | jq -r -M --arg jqpiplineazuretenantid "${AZURE_TENANT_ID}" '.pipeline.azureTenantId|=$jqpiplineazuretenantid' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
               cat extra_values.json | json2yaml >> extra_values.yaml
             - |
               helm install . -f values.yaml -f extra_values.yaml --debug --wait --timeout 600
@@ -529,6 +579,14 @@ Metadata:
         Parameters:
           - AccessKeyID
           - SecretAccessKey
+
+      - Label:
+          default: Azure Credentials and Information
+        Parameters:
+          - AzureClientId
+          - AzureClientSecret
+          - AzureSubscriptionId
+          - AzureTenantId
 
       - Label:
           default: Control Plane Instance Config
