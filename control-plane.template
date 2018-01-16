@@ -414,6 +414,8 @@ Resources:
             - |2
                 helm fetch banzaicloud-stable/pipeline-cluster --untar
             - |2
+                helm fetch banzaicloud-stable/pipeline-cluster-ingress --untar
+            - |2
                 helm fetch banzaicloud-stable/pipeline-cluster-monitor --untar
             - |2
                 helm fetch banzaicloud-stable/pipeline-cp --untar
