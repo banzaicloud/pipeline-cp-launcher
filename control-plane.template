@@ -202,6 +202,17 @@ Parameters:
     Default: ''
     ConstraintDescription: Azure Subscription Id
 
+  HelmRetryAttempt:
+    Description: 'How many times should pipeline wait for the tiller to come up.'
+    Type: String
+    Default: '30'
+    ConstraintDescription: Helm Retry HelmRetryAttempt
+  HelmRetrySleepSeconds:
+    Description: 'How many seconds should pipeline wait for the tiller to come up.'
+    Type: String
+    Default: '15'
+    ConstraintDescription: Helm Retry Sleep Seconds
+
 Resources:
   EC2Instance:
     Type: 'AWS::EC2::Instance'
@@ -326,6 +337,14 @@ Resources:
             - !Base64
               Ref: AzureTenantId
             - |+
+
+            - PIPELINE_DEV_RETRYATTEMPT=
+            - !Ref HelmRetryAttempt
+            - |+
+
+            - PIPELINE_DEV_RETRYSLEEPSECONDS=
+            - !Ref HelmRetrySleepSeconds
+            - +
 
             - >
               kubeadm init --skip-preflight-checks --apiserver-advertise-address
@@ -479,6 +498,10 @@ Resources:
               cat extra_values.json | jq -r -M --arg jqpiplineazuresubscriptionid "${AZURE_SUBSCRIPTION_ID}" '.pipeline.azureSubscriptionId|=$jqpiplineazuresubscriptionid' >  extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
               cat extra_values.json | jq -r -M --arg jqpiplineazuretenantid "${AZURE_TENANT_ID}" '.pipeline.azureTenantId|=$jqpiplineazuretenantid' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+              cat extra_values.json | jq -r -M --arg jqHelmRetryAttempt "${PIPELINE_DEV_RETRYATTEMPT}" '.pipeline.Helm.retryAttempt|=$jqHelmRetryAttempt' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+              cat extra_values.json | jq -r -M --arg jqHelmRetrySleepSeconds "${PIPELINE_DEV_RETRYSLEEPSECONDS}" '.pipeline.Helm.retrySleepSeconds|=$jqHelmRetrySleepSeconds' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
               cat extra_values.json | json2yaml >> extra_values.yaml
             - |
@@ -635,6 +658,8 @@ Metadata:
         Parameters:
           - PipelineApiVersion
           - PipelineImageTag
+          - HelmRetryAttempt
+          - HelmRetrySleepSeconds
 
       - Label:
           default: Slack Credentials (experimental feature)
@@ -696,6 +721,10 @@ Metadata:
         default: WebHook
       SlackChannel:
         default: Channel
+      HelmRetryAttempt:
+        default: 30
+      HelmRetrySleepSeconds:
+        default: 15
 
       ImageId:
         default: AWS Image ID

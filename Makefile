@@ -48,6 +48,8 @@ create: .check-env
 		ParameterKey=AzureClientSecret,ParameterValue=$(AZURE_CLIENT_SECRET) \
 		ParameterKey=AzureSubscriptionId,ParameterValue=$(AZURE_SUBSCRIPTION_ID) \
 		ParameterKey=AzureTenantId,ParameterValue=$(AZURE_TENANT_ID) \
+		ParameterKey=HelmRetryAttempt,ParameterValue=$(PIPELINE_DEV_RETRYATTEMPT) \
+		ParameterKey=HelmRetrySleepSeconds,ParameterValue=$(PIPELINE_DEV_RETRYSLEEPSECONDS) \
 
 terminate:
 	aws cloudformation delete-stack \
