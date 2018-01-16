@@ -344,7 +344,7 @@ Resources:
 
             - PIPELINE_DEV_RETRYSLEEPSECONDS=
             - !Ref HelmRetrySleepSeconds
-            - +
+            - |+
 
             - >
               kubeadm init --skip-preflight-checks --apiserver-advertise-address
