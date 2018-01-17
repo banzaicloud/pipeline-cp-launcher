@@ -721,10 +721,6 @@ Metadata:
         default: WebHook
       SlackChannel:
         default: Channel
-      HelmRetryAttempt:
-        default: 30
-      HelmRetrySleepSeconds:
-        default: 15
 
       ImageId:
         default: AWS Image ID
