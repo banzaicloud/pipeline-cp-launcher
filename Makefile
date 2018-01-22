@@ -22,7 +22,7 @@ list:
 
 create: .check-env
 	aws cloudformation create-stack \
-		--template-body file://control-plane.template \
+		--template-body file://control-plane-cf.template \
 		--stack-name $(STACK_NAME) \
 		--parameters \
 		ParameterKey=InstanceName,ParameterValue=$(INSTANCE_NAME) \
@@ -86,4 +86,7 @@ ifndef PIPELINE_IMAGE_TAG
 endif
 
 validate:
-	aws cloudformation validate-template --template-body file://control-plane.template
+	aws cloudformation validate-template --template-body file://control-plane-cf.template
+
+dev-generate-user-data-for-arm:
+	./scripts/generate_arm_user_data.sh
