@@ -338,11 +338,11 @@ Resources:
               Ref: AzureTenantId
             - |+
 
-            - PIPELINE_DEV_RETRYATTEMPT=
+            - PIPELINE_HELM_RETRYATTEMPT=
             - !Ref HelmRetryAttempt
             - |+
 
-            - PIPELINE_DEV_RETRYSLEEPSECONDS=
+            - PIPELINE_HELM_RETRYSLEEPSECONDS=
             - !Ref HelmRetrySleepSeconds
             - |+
 
@@ -489,9 +489,9 @@ Resources:
             - |
               cat extra_values.json | jq -r -M --arg jqpiplineazuretenantid "${AZURE_TENANT_ID}" '.pipeline.azureTenantId|=$jqpiplineazuretenantid' >  extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-              cat extra_values.json | jq -r -M --arg jqHelmRetryAttempt "${PIPELINE_DEV_RETRYATTEMPT}" '.pipeline.Helm.retryAttempt|=$jqHelmRetryAttempt' > extra_values.tmp && mv extra_values.tmp extra_values.json
+              cat extra_values.json | jq -r -M --arg jqHelmRetryAttempt "${PIPELINE_HELM_RETRYATTEMPT}" '.pipeline.Helm.retryAttempt|=$jqHelmRetryAttempt' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-              cat extra_values.json | jq -r -M --arg jqHelmRetrySleepSeconds "${PIPELINE_DEV_RETRYSLEEPSECONDS}" '.pipeline.Helm.retrySleepSeconds|=$jqHelmRetrySleepSeconds' > extra_values.tmp && mv extra_values.tmp extra_values.json
+              cat extra_values.json | jq -r -M --arg jqHelmRetrySleepSeconds "${PIPELINE_HELM_RETRYSLEEPSECONDS}" '.pipeline.Helm.retrySleepSeconds|=$jqHelmRetrySleepSeconds' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
               cat extra_values.json | json2yaml >> extra_values.yaml
             - |
