@@ -1,6 +1,6 @@
 # Pipeline control plane launcher on AWS
 
-This is an AWS Cloudformation template in order to provision a Pipeline control plane.
+On AWS we use a Cloudformation template in order to provision a Pipeline control plane.
 
 The control plane image (AMI) is currently published to one region, `eu-west-1` aka Ireland. When launching the control plane please pass the following *ImageId* `ami-c070c0b9`.
 
@@ -10,4 +10,6 @@ In case of using the `Makefile` use the `.env.example` as a start.
 
 # Pipeline control plane launcher on Azure
 
-Please see [how to luanch pipeline control plane on Azure](https://github.com/banzaicloud/pipeline/blob/0.2.0/docs/pipeline-howto.md#launch-pipeline-control-plane-on-azure) for details.
+On Azure we use an ARM template in order to provision a Pipeline control plane.
+
+For further details please see [how to launch Pipeline control plane on Azure](https://github.com/banzaicloud/pipeline/blob/0.2.0/docs/pipeline-howto.md#launch-pipeline-control-plane-on-azure).
