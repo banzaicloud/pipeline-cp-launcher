@@ -108,15 +108,6 @@ Parameters:
     Type: String
     Default: ''
     ConstraintDescription: ''
-  PipelineApiVersion:
-    Description: ''
-    Type: String
-    Default: stable
-    AllowedValues:
-      - stable
-      - latest
-      - incubator
-    ConstraintDescription: ''
 
   PipelineIngUser:
     Description: ''
@@ -132,7 +123,7 @@ Parameters:
   PipelineImageTag:
     Description: Pipeline docker image tag
     Type: String
-    Default: '0.1.0'
+    Default: '0.2.0'
     ConstraintDescription: ''
 
   PromIngUser:
@@ -159,9 +150,10 @@ Parameters:
     Default: ''
     ConstraintDescription: ''
   ImageId:
-    Description: Pick the image id from here https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.1.0/README.md
+    Description: Pick the image id from here https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.2.0/README.md
     Type: String
     ConstraintDescription: ''
+    Default: 'ami-c070c0b9'
 
   GithubOrgs:
     Description: Comma-separated list of authorized Github organizations.
@@ -236,9 +228,6 @@ Resources:
             - >
               PRIVATEIP=$(curl -s
               http://169.254.169.254/latest/meta-data/local-ipv4)
-            - PIPELINE_API_VERSION=
-            - !Ref PipelineApiVersion
-            - |+
 
             - SECRET_ACCESS_KEY=
             - !Base64
@@ -420,15 +409,15 @@ Resources:
 
             - |
                 mkdir /opt/helm
-            - |2
+            - |
                 cd /opt/helm
-            - |2
+            - |
                 helm init -c
-            - |2
+            - |
                 helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com
-            - |2
+            - |
                 helm repo update
-            - |2
+            - |
                 helm repo list
             - |2
                 helm fetch banzaicloud-stable/pipeline-cp --untar
@@ -646,7 +635,6 @@ Metadata:
       - Label:
           default: Advanced Pipeline Options
         Parameters:
-          - PipelineApiVersion
           - PipelineImageTag
           - HelmRetryAttempt
           - HelmRetrySleepSeconds
@@ -668,8 +656,6 @@ Metadata:
 
 
     ParameterLabels:
-      PipelineApiVersion:
-        default: Pipeline Version
 
       PipelineIngUser:
         default: API Username
