@@ -38,6 +38,7 @@ create: .check-env
 		ParameterKey=SmtpPassword,ParameterValue=$(SMTP_PASSWORD) \
 		ParameterKey=SmtpTo,ParameterValue=$(SMTP_TO) \
 		ParameterKey=SmtpFrom,ParameterValue=$(SMTP_FROM) \
+		ParameterKey=OAuthEnabled,ParameterValue=$(PIPELINE_OAUTH_ENABLED) \
 		ParameterKey=PipelineIngPass,ParameterValue=$(PIPELINE_ING_PASS) \
 		ParameterKey=PromIngPass,ParameterValue=$(PROM_ING_PASS) \
 		ParameterKey=GithubOrgs,ParameterValue=$(DRONE_ORGS) \
