@@ -463,9 +463,9 @@ Resources:
             - |
               cat extra_values.json | jq -r -M --arg jqoauthenabled "${PIPELINE_OAUTH_ENABLED}" '.pipeline.auth.enabled|=$jqoauthenabled' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-              cat extra_values.json | jq -r -M --arg jqferryinguser "${PIPELINE_ING_USER}" '.pipeline.ingress.user|=$jqferryinguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
+              cat extra_values.json | jq -r -M --arg jqpipelineinguser "${PIPELINE_ING_USER}" '.pipeline.ingress.user|=$jqpipelineinguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-              cat extra_values.json | jq -r -M --arg jqferryingpass "$(openssl passwd -apr1 \"$PIPELINE_ING_PASS\")" '.pipeline.ingress.password|=$jqferryingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
+              cat extra_values.json | jq -r -M --arg jqpipelineingpass "$(openssl passwd -apr1 \"$PIPELINE_ING_PASS\")" '.pipeline.ingress.password|=$jqpipelineingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
               cat extra_values.json | jq -r -M --arg jqprominguser "${PROM_ING_USER}" '.prometheus.ingress.user|=$jqprominguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
