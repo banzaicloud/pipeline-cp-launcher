@@ -105,7 +105,7 @@
             "type": "string",
             "allowedValues": ["false", "true"],
             "metadata": {
-                "description": "Enables OAuth based authentication and JWT based authorization for using Pipeline API. This field is not used if OAuth is enabled."
+                "description": "Enables OAuth based authentication and JWT based authorization for using Pipeline API."
             }
         },
         "pipelineIngUser": {
