@@ -146,11 +146,11 @@ cat extra_values.json | jq -r -M --arg jqprominguser "${PROM_ING_USER}" '.promet
 cat extra_values.json | jq -r -M --arg jqpromingpass "$(openssl passwd -apr1 \"$PROM_ING_PASS\")" '.prometheus.ingress.password|=$jqpromingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqgrafanauser "${GRAFANA_USER}" '.grafana.server.adminUser|=$jqgrafanauser' > extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqgrafanapass "${GRAFANA_PASS}" '.grafana.server.adminPassword|=$jqgrafanapass' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqdroneorgs "${DRONE_ORGS}" '.drone.server.env.DRONE_ORGS|=$jqdroneorgs' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqdronegithubclient "${DRONE_GITHUB_CLIENT}" '.drone.server.env.DRONE_GITHUB_CLIENT|=$jqdronegithubclient' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqdronegithubsecret "${DRONE_GITHUB_SECRET}" '.drone.server.env.DRONE_GITHUB_SECRET|=$jqdronegithubsecret' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqdronegithubclient "${DRONE_GITHUB_CLIENT}" '.pipeline.auth.clientid|=$jqdronegithubclient' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqdronegithubsecret "${DRONE_GITHUB_SECRET}" '.pipeline.auth.clientsecret|=$jqdronegithubsecret' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+cat extra_values.json | jq -r -M --arg jqgithuborgs "${GITHUB_ORGS}" '.drone.server.env.DRONE_ORGS|=$jqgithuborgs' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+cat extra_values.json | jq -r -M --arg jqgithubclient "${GITHUB_CLIENT}" '.drone.server.env.DRONE_GITHUB_CLIENT|=$jqgithubclient' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+cat extra_values.json | jq -r -M --arg jqgithubsecret "${GITHUB_SECRET}" '.drone.server.env.DRONE_GITHUB_SECRET|=$jqgithubsecret' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+cat extra_values.json | jq -r -M --arg jqgithubclient "${GITHUB_CLIENT}" '.pipeline.auth.clientid|=$jqgithubclient' >  extra_values.tmp && mv extra_values.tmp extra_values.json
+cat extra_values.json | jq -r -M --arg jqgithubsecret "${GITHUB_SECRET}" '.pipeline.auth.clientsecret|=$jqgithubsecret' >  extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqpiplineimagetag "${PIPELINE_IMAGE_TAG}" '.pipeline.image.tag|=$jqpiplineimagetag' >  extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqpiplineazureclientid "${AZURE_CLIENT_ID}" '.pipeline.azureClientId|=$jqpiplineazureclientid' >  extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqpiplineazureclientsecret "${AZURE_CLIENT_SECRET}" '.pipeline.azureClientSecret|=$jqpiplineazureclientsecret' >  extra_values.tmp && mv extra_values.tmp extra_values.json
