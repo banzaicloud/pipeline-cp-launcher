@@ -43,9 +43,9 @@ create-aws: .check-env-aws
 		ParameterKey=OAuthEnabled,ParameterValue=$(PIPELINE_OAUTH_ENABLED) \
 		ParameterKey=PipelineIngPass,ParameterValue=$(PIPELINE_ING_PASS) \
 		ParameterKey=PromIngPass,ParameterValue=$(PROM_ING_PASS) \
-		ParameterKey=GithubOrgs,ParameterValue=$(DRONE_ORGS) \
-		ParameterKey=GithubClient,ParameterValue=$(DRONE_GITHUB_CLIENT) \
-		ParameterKey=GithubSecret,ParameterValue=$(DRONE_GITHUB_SECRET) \
+		ParameterKey=GithubOrgs,ParameterValue=$(GITHUB_ORGS) \
+		ParameterKey=GithubClient,ParameterValue=$(GITHUB_CLIENT) \
+		ParameterKey=GithubSecret,ParameterValue=$(GITHUB_SECRET) \
 		ParameterKey=PipelineImageTag,ParameterValue=$(PIPELINE_IMAGE_TAG) \
 		ParameterKey=AzureClientId,ParameterValue=$(AZURE_CLIENT_ID) \
 		ParameterKey=AzureClientSecret,ParameterValue=$(AZURE_CLIENT_SECRET) \
@@ -77,9 +77,9 @@ terminate-aws:
 			pipelineImageTag=$(PIPELINE_IMAGE_TAG) \
 			promIngPass=$(PROM_ING_PASS) \
 			grafanaPass=$(GRAFANA_PASS) \
-			droneOrgs=$(DRONE_ORGS) \
-			droneGithubClient=$(DRONE_GITHUB_CLIENT) \
-			droneGithubSecret=$(DRONE_GITHUB_SECRET) \
+			githubOrgs=$(GITHUB_ORGS) \
+			githubClient=$(GITHUB_CLIENT) \
+			githubSecret=$(GITHUB_SECRET) \
 			azureClientId=$(AZURE_CLIENT_ID) \
 			azureClientSecret=$(AZURE_CLIENT_SECRET) \
 			azureSubscriptionId=$(AZURE_SUBSCRIPTION_ID) \
@@ -178,16 +178,16 @@ ifndef PROM_ING_PASS
 	$(error PROM_ING_PASS is undefined)
 endif
 
-ifndef DRONE_ORGS
-	$(error DRONE_ORGS is undefined)
+ifndef GITHUB_ORGS
+	$(error GITHUB_ORGS is undefined)
 endif
 
-ifndef DRONE_GITHUB_CLIENT
-	$(error DRONE_GITHUB_CLIENT is undefined)
+ifndef GITHUB_CLIENT
+	$(error GITHUB_CLIENT is undefined)
 endif
 
-ifndef DRONE_GITHUB_SECRET
-	$(error DRONE_GITHUB_SECRET is undefined)
+ifndef GITHUB_SECRET
+	$(error GITHUB_SECRET is undefined)
 endif
 
 validate-aws-cf:
