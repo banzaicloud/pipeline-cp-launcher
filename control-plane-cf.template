@@ -110,25 +110,6 @@ Parameters:
     Type: String
     Default: ''
     ConstraintDescription: ''
-
-  OAuthEnabled:
-    Description: 'Enables OAuth based authentication and JWT based authorization for using Pipeline API'
-    Type: String
-    Default: false
-    AllowedValues: [true, false]
-    ConstraintDescription: ''
-
-  PipelineIngUser:
-    Description: 'The user name to access Pipeline API. Not used if OAuth is enabled.'
-    Type: String
-    Default: admin
-    ConstraintDescription: ''
-  PipelineIngPass:
-    Description: 'The password to access Pipeline API. Not used if OAuth is enabled.'
-    NoEcho: 'true'
-    Type: String
-    Default: ''
-    ConstraintDescription: ''
   PipelineImageTag:
     Description: Pipeline docker image tag
     Type: String
@@ -271,19 +252,7 @@ Resources:
             - SLACK_WEBHOOK_URL=
             - !Ref SlackWebhookUrl
             - |+
-
-            - PIPELINE_OAUTH_ENABLED=
-            - !Ref OAuthEnabled
-            - |+
-
-            - PIPELINE_ING_USER=
-            - !Ref PipelineIngUser
-            - |+
-
-            - PIPELINE_ING_PASS=
-            - !Ref PipelineIngPass
-            - |+
-
+            
             - PIPELINE_IMAGE_TAG=
             - !Ref PipelineImageTag
             - |+
@@ -463,12 +432,6 @@ Resources:
             - |
               cat extra_values.json | jq -r -M --arg jqsmtpfrom "${SMTP_FROM}" '.prometheus.alertmanager.smtp_from|=$jqsmtpfrom' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
-              cat extra_values.json | jq -r -M --arg jqoauthenabled "${PIPELINE_OAUTH_ENABLED}" '.pipeline.auth.enabled|=$jqoauthenabled' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqpipelineinguser "${PIPELINE_ING_USER}" '.pipeline.ingress.user|=$jqpipelineinguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqpipelineingpass "$(openssl passwd -apr1 \"$PIPELINE_ING_PASS\")" '.pipeline.ingress.password|=$jqpipelineingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
               cat extra_values.json | jq -r -M --arg jqprominguser "${PROM_ING_USER}" '.prometheus.ingress.user|=$jqprominguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
               cat extra_values.json | jq -r -M --arg jqpromingpass "$(openssl passwd -apr1 \"$PROM_ING_PASS\")" '.prometheus.ingress.password|=$jqpromingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
@@ -620,13 +583,6 @@ Metadata:
           - KeyName
 
       - Label:
-          default: Banzai Pipeline Credentials
-        Parameters:
-          - OAuthEnabled
-          - PipelineIngUser
-          - PipelineIngPass
-
-      - Label:
           default: Banzai-Ci Credentials
         Parameters:
           - GithubOrgs
@@ -676,14 +632,6 @@ Metadata:
 
 
     ParameterLabels:
-      OAuthEnabled:
-        default: API OAuth enabled
-
-      PipelineIngUser:
-        default: API Username
-      PipelineIngPass:
-        default: API Password
-
       PromIngUser:
         default: Username
       PromIngPass:
