@@ -40,8 +40,6 @@ create-aws: .check-env-aws
 		ParameterKey=SmtpPassword,ParameterValue=$(SMTP_PASSWORD) \
 		ParameterKey=SmtpTo,ParameterValue=$(SMTP_TO) \
 		ParameterKey=SmtpFrom,ParameterValue=$(SMTP_FROM) \
-		ParameterKey=OAuthEnabled,ParameterValue=$(PIPELINE_OAUTH_ENABLED) \
-		ParameterKey=PipelineIngPass,ParameterValue=$(PIPELINE_ING_PASS) \
 		ParameterKey=PromIngPass,ParameterValue=$(PROM_ING_PASS) \
 		ParameterKey=GithubOrgs,ParameterValue=$(GITHUB_ORGS) \
 		ParameterKey=GithubClient,ParameterValue=$(GITHUB_CLIENT) \
@@ -72,8 +70,6 @@ terminate-aws:
 			smtpFrom=$(SMTP_TO) \
 			slackWebhookUrl=$(SLACK_URL) \
 			slackChannel=$(SLACK_CHANNEL) \
-			oauthEnabled=$(PIPELINE_OAUTH_ENABLED) \
-			pipelineIngPass=$(PIPELINE_ING_PASS) \
 			pipelineImageTag=$(PIPELINE_IMAGE_TAG) \
 			promIngPass=$(PROM_ING_PASS) \
 			grafanaPass=$(GRAFANA_PASS) \

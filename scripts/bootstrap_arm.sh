@@ -139,9 +139,6 @@ cat extra_values.json | jq -r -M --arg jqsmtpuser "${SMTP_USERNAME}" '.prometheu
 cat extra_values.json | jq -r -M --arg jqsmtppass "${SMTP_PASSWORD}" '.prometheus.alertmanager.smtp_password|=$jqsmtppass' > extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqsmtpto "${SMTP_TO}" '.prometheus.alertmanager.smtp_to|=$jqsmtpto' > extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqsmtpfrom "${SMTP_FROM}" '.prometheus.alertmanager.smtp_from|=$jqsmtpfrom' > extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqoauthenabled "${PIPELINE_OAUTH_ENABLED}" '.pipeline.auth.enabled|=$jqoauthenabled' > extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqpipelineinguser "${PIPELINE_ING_USER}" '.pipeline.ingress.user|=$jqpipelineinguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqpipelineingpass "$(openssl passwd -apr1 \"$PIPELINE_ING_PASS\")" '.pipeline.ingress.password|=$jqpipelineingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqprominguser "${PROM_ING_USER}" '.prometheus.ingress.user|=$jqprominguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqpromingpass "$(openssl passwd -apr1 \"$PROM_ING_PASS\")" '.prometheus.ingress.password|=$jqpromingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqgrafanauser "${GRAFANA_USER}" '.grafana.server.adminUser|=$jqgrafanauser' > extra_values.tmp && mv extra_values.tmp extra_values.json
