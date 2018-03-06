@@ -45,10 +45,6 @@ create-aws: .check-env-aws
 		ParameterKey=GithubClient,ParameterValue=$(GITHUB_CLIENT) \
 		ParameterKey=GithubSecret,ParameterValue=$(GITHUB_SECRET) \
 		ParameterKey=PipelineImageTag,ParameterValue=$(PIPELINE_IMAGE_TAG) \
-		ParameterKey=AzureClientId,ParameterValue=$(AZURE_CLIENT_ID) \
-		ParameterKey=AzureClientSecret,ParameterValue=$(AZURE_CLIENT_SECRET) \
-		ParameterKey=AzureSubscriptionId,ParameterValue=$(AZURE_SUBSCRIPTION_ID) \
-		ParameterKey=AzureTenantId,ParameterValue=$(AZURE_TENANT_ID) \
 		ParameterKey=HelmRetryAttempt,ParameterValue=$(PIPELINE_HELM_RETRYATTEMPT) \
 		ParameterKey=HelmRetrySleepSeconds,ParameterValue=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
 
