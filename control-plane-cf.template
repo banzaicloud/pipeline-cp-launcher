@@ -519,13 +519,16 @@ Metadata:
           - InstanceType
           - ImageId
           - KeyName
-
       - Label:
-          default: Banzai-Ci Credentials
+          default: Pipeline credentials
         Parameters:
-          - GithubOrgs
           - GithubClient
           - GithubSecret
+
+      - Label:
+          default: Banzai-Ci
+        Parameters:
+          - GithubOrgs
 
       - Label:
           default: Grafana Dashboard

@@ -148,19 +148,19 @@
         "githubOrgs": {
             "type": "string",
             "metadata": {
-                "description": "Please specify the GitHub organizations whose repositories will be used by the Pipeline."
+                "description": "Please specify the comma separated list of GitHub organizations to grant access to for the Pipeline CI."
             }
         },
         "githubClient": {
             "type": "string",
             "metadata": {
-                "description": "The Cliend ID of the newly created OAuth App in GitHub."
+                "description": "The Cliend ID of the OAuth App in GitHub."
             }
         },
         "githubSecret": {
             "type": "securestring",
             "metadata": {
-                "description": "The Cliend Secret of the newly created OAuth App in GitHub."
+                "description": "The Cliend Secret of the OAuth App in GitHub."
             }
         },
         "azureClientId": {
