@@ -8,7 +8,7 @@ Before deploying `Control Plane` to any of the supported cloud providers the fol
 
 ### GitHub OAuth setup
 
-The `Pipeline` requires authentication through GitHub thus the appropriate OAuth application needs to be set up on GitHub.
+`Pipeline` requires authentication through GitHub thus the appropriate OAuth application needs to be set up on GitHub.
 Follow [these](https://github.com/banzaicloud/pipeline/blob/master/docs/github-app.md) instructions for details.
 
 ## Pipeline control plane launcher on AWS
