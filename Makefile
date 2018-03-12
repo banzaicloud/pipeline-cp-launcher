@@ -11,6 +11,9 @@ SMTP_FROM ?=""
 
 AZURE_RESOURCEGROUP ?=$(USER)_$(AZURE_LOCATION)
 
+GCLOUD_ZONE ?= $(shell gcloud config get-value compute/zone)
+GCLOUD_REGION ?= $(shell gcloud config get-value compute/region)
+
 .DEFAULT_GOAL := list
 .PHONY: list
 
@@ -92,6 +95,62 @@ create-azure: .check-env-azure
 terminate-azure:
 	az group delete --name $(AZURE_RESOURCEGROUP)
 
+create-gcloud: .check-env-gcloud .gcloud_install_cp_chart
+	@/bin/echo -n "Your Control Plane ip/host: "
+	@kubectl get svc -o json | jq -r '.items[] | select(.spec.type=="LoadBalancer") .status.loadBalancer.ingress[].ip'
+
+terminate-gcloud: .check-env-gcloud
+	@gcloud container clusters delete $(STACK_NAME)
+
+.gcloud_create_k8s:
+	@/bin/echo "Creating Control Plane:" $(STACK_NAME)
+	@gcloud container clusters create $(STACK_NAME) \
+		--cluster-version=1.8.8-gke.0 \
+		--num-nodes=1 \
+		--zone $(GCLOUD_ZONE) \
+		--no-enable-basic-auth \
+		--machine-type=$(GKE_MACHINE_TYPE) 2>/dev/null
+	@/bin/echo "---"
+
+.gcloud_get_credential: .gcloud_create_k8s
+	@gcloud container clusters get-credentials $(STACK_NAME) \
+		--zone $(GCLOUD_ZONE) >/dev/null 2>&1 
+
+.gcloud_install_helm_and_repo: .gcloud_get_credential
+	@kubectl -n kube-system create serviceaccount tiller >/dev/null
+	@kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller >/dev/null
+	@helm init --service-account=tiller >/dev/null
+	@/bin/echo -n "Installing Helm."
+	@until false; do sleep 2; /bin/echo -n "."; helm list >/dev/null 2>&1 && /bin/echo "done" && break; done
+	@helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com > /dev/null
+
+.gcloud_install_cp_chart: .gcloud_install_helm_and_repo
+	@/bin/echo "Helm install banzaicloud-stable/pipeline-cp"
+	@helm install banzaicloud-stable/pipeline-cp \
+		--wait \
+		--timeout 120 \
+		--set=traefik.serviceType=LoadBalancer \
+		--set=drone.server.env.DRONE_ORGS=$(GITHUB_ORGS) \
+		--set=global.auth.clientid=$(GITHUB_CLIENT) \
+		--set=global.auth.clientsecret=$(GITHUB_SECRET) \
+		--set=pipeline.gkeCredentials.client_id=$(GKE_CLIENT_ID) \
+		--set=pipeline.gkeCredentials.client_secret=$(GKE_CLIENT_SECRET) \
+		--set=pipeline.gkeCredentials.refresh_token=$(GKE_REFRESH_TOKEN) \
+		--set=pipeline.gkeCredentials.type=$(GKE_TYPE) \
+		--set=prometheus.alertmanager.smtp_address=$(SMTP_SERVER_ADDRESS) \
+		--set=prometheus.alertmanager.smtp_username=$(SMTP_USERNAME) \
+		--set=prometheus.alertmanager.smtp_password=$(SMTP_PASSWORD) \
+		--set=prometheus.alertmanager.smtp_from=$(SMTP_FROM) \
+		--set=prometheus.alertmanager.smtp_to=$(SMTP_TO) \
+		--set=prometheus.alertmanager.slack_api_url=$(SLACK_URL) \
+		--set=prometheus.alertmanager.slack_channel=$(SLACK_CHANNEL) \
+		--set=pipeline.image.tag=$(PIPELINE_IMAGE_TAG) \
+		--set=prometheus.ingress.password=$(PROM_ING_PASS) \
+		--set=grafana.server.adminPassword=$(GRAFANA_PASS) \
+		--set=pipeline.Helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
+		--set=pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+		1>/dev/null
+
 .check-env-azure: .check-env-pipeline
 ifndef AZURE_LOCATION
 	$(error AZURE_LOCATION is undefined)
@@ -153,6 +212,25 @@ endif
 
 ifndef IMAGE_ID
 	$(error IMAGE_ID is undefined)
+endif
+
+
+.check-env-gcloud: .check-env-pipeline
+
+ifndef GKE_CLIENT_ID
+	$(error GKE_CLIENT_ID is undefined)
+endif
+
+ifndef GKE_CLIENT_SECRET
+	$(error GKE_CLIENT_SECRET is undefined)
+endif
+
+ifndef GKE_REFRESH_TOKEN
+	$(error GKE_REFRESH_TOKEN is undefined)
+endif
+
+ifndef GKE_TYPE
+	$(error GKE_TYPE is undefined)
 endif
 
 
