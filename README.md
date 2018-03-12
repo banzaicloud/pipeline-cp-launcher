@@ -1,15 +1,24 @@
-# Pipeline control plane launcher on AWS
+# Pipeline Control Plane launcher
 
-On AWS we use a Cloudformation template in order to provision a Pipeline control plane.
+Pipeline control plane launcher is responsible for launching the components/services that form [Control Plane](https://github.com/banzaicloud/pipeline#control-plane) on one of the supported cloud providers.
 
-The control plane image (AMI) is currently published to one region, `eu-west-1` aka Ireland. When launching the control plane please pass the following *ImageId* `ami-c070c0b9`.
+## Pre-requisites
 
-* For creating the control plane launcher through command line take a look at `.env.example` as a start to learn what environment variables are required by the `Makefile`.
-* For creating the control plane launcher using Amazon Web Console please [follow](https://github.com/banzaicloud/pipeline/blob/master/docs/pipeline-howto.md#launch-pipeline-control-plane-on-aws) for details.
+Before deploying `Control Plane` to any of the supported cloud providers the follwoing pre-requisites must be esured.
 
-# Pipeline control plane launcher on Azure
+### GitHub OAuth setup
 
-On Azure we use an ARM template in order to provision a Pipeline control plane.
+The `Pipeline` requires authentication through GitHub thus the appropriate OAuth application needs to be set up on GitHub.
+Follow [these](https://github.com/banzaicloud/pipeline/blob/master/docs/github-app.md) instructions for details.
 
-* For creating the control plane launcher through command line take a look at `.env.example` as a start to learn what environment variables are required by the `Makefile`. **Note**: Make sure to log in to Azure prior using the command line with `az login` !
-* For further details please see [how to launch Pipeline control plane on Azure](https://github.com/banzaicloud/pipeline/blob/master/docs/pipeline-howto.md#launch-pipeline-control-plane-on-azure).
+## Pipeline control plane launcher on AWS
+
+For launching `Control Plane` on `AWS` check out details at [Control Plane on AWS](docs/control-plane-on-aws.md).
+
+## Pipeline control plane launcher on Azure
+
+For launching `Control Plane` on `Azure` check out details at see details at [Control Plane on Azure](docs/control-plane-on-azure.md).
+
+## Pipeline control plane launcher on Google Cloud
+
+For launching `Control Plane` on `Google Cloud` check out details at see details at [Control Plane on Google Cloud](docs/control-plane-on-gcloud.md).
