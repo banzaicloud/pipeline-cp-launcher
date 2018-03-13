@@ -128,10 +128,10 @@ helm install banzaicloud-stable/pipeline-cp \
 --set=drone.server.env.DRONE_ORGS=<acme_org> \
 --set=global.auth.clientid=<GITHUB_CLIENT_ID> \
 --set=global.auth.clientsecret=<GITHUB_CLIENT>SECRET> \
---set=gkeCredentials.client_id=<GKE_CLIENT_ID> \
---set=gkeCredentials.client_secret=<GKE_CLIENT_SECRET> \
---set=gkeCredentials.refresh_token=<GKE_REFRESH_TOKEN> \
---set=gkeCredentials.type=<GKE_TYPE> \
+--set=pipeline.gkeCredentials.client_id=<GKE_CLIENT_ID> \
+--set=pipeline.gkeCredentials.client_secret=<GKE_CLIENT_SECRET> \
+--set=pipeline.gkeCredentials.refresh_token=<GKE_REFRESH_TOKEN> \
+--set=pipeline.gkeCredentials.type=<GKE_TYPE> \
 --set=prometheus.ingress.password=<PROMETHEUS_INGRESS_PASSWORD> \
 --set=grafana.server.adminPassword=<GRAFANA_PASSWORD> 
 ```
