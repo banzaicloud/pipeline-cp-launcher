@@ -7,7 +7,7 @@ Follow the steps below for hosting `Pipeline Control Plane` on `Google Cloud`.
 ### Create new Project
 To create a ControlPlane within your Google Container Engine (GKE), a project must be set up. To do that please follow this [link](https://console.cloud.google.com/getting-started?ignorePreviousPage).
 
-> If you don't signed up for GKE yet, please hit the "Sign up for free trial", this will allow you to try GKE out.
+> If you haven't signed up for GKE yet, please hit the "Sign up for free trial", this will allow you to try GKE out.
 <a href="images/GKECreateProject.png" target="_blank"><img src="images/GKECreateProject.png"></a>
 
 Create a new `Project` or use the `My First Project` which is created by GKE by default. Click the `My First Project` to open the drop-down menu.
