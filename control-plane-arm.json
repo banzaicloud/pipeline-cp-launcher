@@ -109,7 +109,7 @@
             }
         },
         "pipelineImageTag": {
-            "defaultValue": "latest",
+            "defaultValue": "0.3.0",
             "type": "string",
             "metadata": {
                 "description": "Please specify the version of Pipline image to be used."

@@ -113,7 +113,7 @@ Parameters:
   PipelineImageTag:
     Description: Pipeline docker image tag
     Type: String
-    Default: 'latest'
+    Default: '0.3.0'
     ConstraintDescription: ''
 
   PromIngUser:
@@ -140,7 +140,7 @@ Parameters:
     Default: ''
     ConstraintDescription: ''
   ImageId:
-    Description: Pick the image id from here https://github.com/banzaicloud/pipeline-cp-launcher/blob/latest/README.md
+    Description: Pick the image id from here https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.3.0/README.md
     Type: String
     ConstraintDescription: ''
     Default: 'ami-c070c0b9'
