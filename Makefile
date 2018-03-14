@@ -44,6 +44,7 @@ create-aws: .check-env-aws
 		ParameterKey=SmtpTo,ParameterValue=$(SMTP_TO) \
 		ParameterKey=SmtpFrom,ParameterValue=$(SMTP_FROM) \
 		ParameterKey=PromIngPass,ParameterValue=$(PROM_ING_PASS) \
+		ParameterKey=GrafanaPass,ParameterValue=$(GRAFANA_PASS) \
 		ParameterKey=GithubOrgs,ParameterValue=$(GITHUB_ORGS) \
 		ParameterKey=GithubClient,ParameterValue=$(GITHUB_CLIENT) \
 		ParameterKey=GithubSecret,ParameterValue=$(GITHUB_SECRET) \
