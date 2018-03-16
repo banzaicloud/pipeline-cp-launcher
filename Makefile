@@ -249,6 +249,10 @@ ifndef PROM_ING_PASS
 	$(error PROM_ING_PASS is undefined)
 endif
 
+ifndef GRAFANA_PASS
+	$(error GRAFANA_PASS is undefined)
+endif
+
 ifndef GITHUB_ORGS
 	$(error GITHUB_ORGS is undefined)
 endif
