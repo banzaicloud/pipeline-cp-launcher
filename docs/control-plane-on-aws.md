@@ -3,7 +3,7 @@
 Follow the steps below for hosting `Pipeline Control Plane` on `AWS`.
 On `AWS` we use a [Cloudformation](https://aws.amazon.com/cloudformation/) template in order to provision a Pipeline control plane.
 
-The control plane image (AMI) is currently published to one region, `eu-west-1` aka Ireland. When launching the control plane please pass the following ImageId `ami-c070c0b9`.
+The control plane image (AMI) is currently published to one region, `eu-west-1` aka Ireland. When launching the control plane please pass the following ImageId `ami-ece5b095`.
 
 ## Pre-requisites
 
@@ -21,7 +21,7 @@ For creating the control plane launcher through command line take a look at `.en
 
 * Initiate the creation of a new stack: [![Launch stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new)
 
-* Select `Specify an Amazon S3 template URL` and add the URL to our template `https://s3-eu-west-1.amazonaws.com/cf-templates-grr4ysncvcdl-eu-west-1/2018071W8O-new.templates9sd4jylejr`
+* Select `Specify an Amazon S3 template URL` and add the URL to our template `https://s3-eu-west-1.amazonaws.com/cf-templates-grr4ysncvcdl-eu-west-1/2018079qfE-new.templateejo9oubl16`
 
   <a href="images/ControlPlaneFromTemplate.png" target="_blank"><img src="images/ControlPlaneFromTemplate.png" height="230"></a>
 
