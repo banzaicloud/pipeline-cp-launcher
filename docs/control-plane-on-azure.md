@@ -67,7 +67,7 @@ For creating the control plane launcher through command line take a look at `.en
   * **Slack Webhook Url/Channel**
     * this section is optional. Complete this section to receive  cluster related alerts through a [Slack](https://slack.com) push notification channel.
 
-  * **Pipeline image Tag** - specify `0.2.0` for using current stable Pipeline release.
+  * **Pipeline image Tag** - specify `0.3.0` for using current stable Pipeline release.
 
   * **Prometheus Dashboard**
     * Prometheus Password - specify password for accessing Prometheus that collects cluster metrics
