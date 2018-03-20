@@ -8,6 +8,7 @@ SMTP_USERNAME ?=""
 SMTP_PASSWORD ?=""
 SMTP_TO ?=""
 SMTP_FROM ?=""
+TRUSTED_USER_CA_URL ?=""
 
 AZURE_RESOURCEGROUP ?=$(USER)_$(AZURE_LOCATION)
 
@@ -52,6 +53,7 @@ create-aws: .check-env-aws
 		ParameterKey=PipelineImageTag,ParameterValue=$(PIPELINE_IMAGE_TAG) \
 		ParameterKey=HelmRetryAttempt,ParameterValue=$(PIPELINE_HELM_RETRYATTEMPT) \
 		ParameterKey=HelmRetrySleepSeconds,ParameterValue=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+		ParameterKey=TrustedUserCAURL,ParameterValue=$(TRUSTED_USER_CA_URL)
 
 terminate-aws:
 	aws cloudformation delete-stack \
@@ -82,7 +84,8 @@ terminate-aws:
 			azureSubscriptionId=$(AZURE_SUBSCRIPTION_ID) \
 			azureTenantId=$(AZURE_TENANT_ID) \
 			pipelineHelmRetryattempt=$(PIPELINE_HELM_RETRYATTEMPT) \
-			pipelineHelmRetrysleepseconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS)
+			pipelineHelmRetrysleepseconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+			trustedUserCaUrl=$(TRUSTED_USER_CA_URL)
 
 create-azure: .check-env-azure
 	az group create --name $(AZURE_RESOURCEGROUP) --location $(AZURE_LOCATION)

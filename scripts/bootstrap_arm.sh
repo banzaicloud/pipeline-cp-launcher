@@ -18,6 +18,12 @@ K8S_DNS_RELEASE_TAG=1.14.8
 HELM_RELEASE_TAG=v2.8.2
 PROMETHEUS_RELEASE_TAG=v2.1.0
 
+if [[ ! -z "${TRUSTED_USER_CA_URL}" ]]; then
+  curl ${TRUSTED_USER_CA_URL} > /etc/ssh/trusted-user-ca-keys.pem
+  echo -e "\nTrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
+  service ssh restart
+fi
+
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
 
@@ -62,7 +68,7 @@ pip install --upgrade pip
 systemctl enable docker
 systemctl start docker
 
-sudo pip install json2yaml
+pip install json2yaml
 
 helm completion bash > /etc/bash_completion.d/helm
 kubectl completion bash > /etc/bash_completion.d/kubectl
