@@ -67,7 +67,7 @@ For creating the control plane launcher through command line take a look at `.en
       <a href="images/CloudFormationPrometheusCred.png"><img src="images/CloudFormationPrometheusCred.png" height="100"></a>
 
   * **Advanced Pipeline Options**
-     * PipelineImageTag - specify `0.2.0` for using current stable Pipeline release.
+     * PipelineImageTag - specify `0.3.0` for using current stable Pipeline release.
 
      <a href="images/CloudFormationAdvancedPipOpt.png"><img src="images/CloudFormationAdvancedPipOpt.png" height="130"></a>
 
