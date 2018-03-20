@@ -241,10 +241,6 @@ ifndef PIPELINE_IMAGE_TAG
 	$(error PIPELINE_IMAGE_TAG is undefined)
 endif
 
-ifndef PIPELINE_ING_PASS
-	$(error PIPELINE_ING_PASS is undefined)
-endif
-
 ifndef PROM_ING_PASS
 	$(error PROM_ING_PASS is undefined)
 endif
