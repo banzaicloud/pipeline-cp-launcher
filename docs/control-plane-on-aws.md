@@ -40,7 +40,7 @@ For creating the control plane launcher through command line take a look at `.en
 
   * **Control Plane Instance Config**
      * InstanceName - name of the EC2 instance that will host the Control Plane
-     * ImageId - `ami-c070c0b9`
+     * ImageId - `ami-ece5b095`
      * KeyName - specify your AWS [EC2 key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
 
      <a href="images/ControlPlaneInstanceConfig.png"><img src="images/ControlPlaneInstanceConfig.png" height="180"></a>

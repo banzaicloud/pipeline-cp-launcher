@@ -3,20 +3,27 @@
 set -o nounset
 set -o pipefail
 set -o errexit
-set -x
+
+export DEBIAN_FRONTEND=noninteractive
+
  
 export LC_ALL=C
 
-KUBERNETES_RELEASE_TAG=v1.8.3
-ETCD_RELEASE_TAG=3.0.17
-K8S_DNS_RELEASE_TAG=1.14.7
-HELM_RELEASE_TAG=v2.7.0
-PROMETHEUS_RELEASE_TAG=v1.8.2
+KUBERNETES_VERSION=1.9.5
+KUBERNETES_RELEASE_TAG=v${KUBERNETES_VERSION}
+
+ETCD_RELEASE_TAG=3.1.11
+K8S_DNS_RELEASE_TAG=1.14.8
+
+HELM_RELEASE_TAG=v2.8.2
+PROMETHEUS_RELEASE_TAG=v2.1.0
 
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
 
-export DEBIAN_FRONTEND=noninteractive
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+echo "deb https://download.docker.com/linux/ubuntu xenial stable" > /etc/apt/sources.list.d/docker-ce.list
+
 apt-get update -y
 apt-get install -y \
     apt-transport-https \
@@ -25,10 +32,11 @@ apt-get install -y \
     cloud-utils \
     cloud-init \
     cloud-initramfs-growroot \
-    docker.io=1.13.1-0ubuntu1~16.04.2 \
-    kubelet=1.8.3-00 \
-    kubeadm=1.8.3-00 \
-    kubernetes-cni=0.5.1-00 \
+    docker-ce=17.12.0~ce-0~ubuntu \
+    kubectl="${KUBERNETES_VERSION}-00" \
+    kubelet="${KUBERNETES_VERSION}-00" \
+    kubeadm="${KUBERNETES_VERSION}-00" \
+    kubernetes-cni=0.6.0-00 \
     sysstat \
     iotop \
     rsync \
@@ -40,9 +48,12 @@ apt-get install -y \
     jq
 
 # We don't want to upgrade them.
-apt-mark hold kubeadm kubectl kubelet kubernetes-cni
+apt-mark hold kubeadm kubectl kubelet kubernetes-cni docker-ce
+
+systemctl enable docker
 
 apt-get -o Dpkg::Options::="--force-confold" upgrade -q -y --force-yes 
+
 #install helm
 curl https://storage.googleapis.com/kubernetes-helm/helm-${HELM_RELEASE_TAG}-linux-amd64.tar.gz | tar xz --strip 1 -C /usr/bin/
 
@@ -51,8 +62,7 @@ pip install --upgrade pip
 systemctl enable docker
 systemctl start docker
 
-pip install awscli
-pip install json2yaml
+sudo pip install json2yaml
 
 helm completion bash > /etc/bash_completion.d/helm
 kubectl completion bash > /etc/bash_completion.d/kubectl
@@ -68,12 +78,6 @@ images=(
   "gcr.io/google_containers/k8s-dns-kube-dns-amd64:${K8S_DNS_RELEASE_TAG}"
   "gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:${K8S_DNS_RELEASE_TAG}"
   "gcr.io/kubernetes-helm/tiller:${HELM_RELEASE_TAG}"
-  "gcr.io/google_containers/kube-state-metrics:v1.1.0-rc.0"
-  "bitnami/mariadb:10.1.28-r2"
-  "grafana/grafana:latest"
-  "traefik:1.4.1"
-  "prom/prometheus:v1.8.0"
-  "jimmidyson/configmap-reload:v0.1"
 )
 
 for i in "${images[@]}" ; do docker pull "${i}" ; done
@@ -85,11 +89,9 @@ curl -s -q "https://raw.githubusercontent.com/banzaicloud/pipeline-cp-images/mas
 PRIVATEIP=$(curl -H Metadata:true "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/privateIpAddress?api-version=2017-04-02&format=text")
 PUBLICIP=$(curl -H Metadata:true "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/publicIpAddress?api-version=2017-04-02&format=text")
 
-
-
 kubeadm init --skip-preflight-checks --apiserver-advertise-address ${PRIVATEIP} --apiserver-cert-extra-sans ${PUBLICIP} ${PRIVATEIP}
 
-kubectl apply -f /etc/kubernetes/weave.yml --kubeconfig /etc/kubernetes/admin.conf
+kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.2.1/weave-daemonset-k8s-1.7.yaml --kubeconfig /etc/kubernetes/admin.conf
 
 sed -i -e 's|- --insecure-port=0|- --insecure-port=0\n    - --service-node-port-range=30-32767|' /etc/kubernetes/manifests/kube-apiserver.yaml
 
@@ -120,6 +122,7 @@ done
 mkdir /opt/helm
 
 cd /opt/helm
+export HELM_HOME=/opt/helm/.helm
 helm init -c
 helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com
 helm repo update
