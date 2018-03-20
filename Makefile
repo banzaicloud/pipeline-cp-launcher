@@ -106,7 +106,7 @@ terminate-gcloud: .check-env-gcloud
 .gcloud_create_k8s:
 	@/bin/echo "Creating Control Plane:" $(STACK_NAME)
 	@gcloud container clusters create $(STACK_NAME) \
-		--cluster-version=1.8.8-gke.0 \
+		--cluster-version=1.9.4-gke.1 \
 		--num-nodes=1 \
 		--zone $(GCLOUD_ZONE) \
 		--no-enable-basic-auth \
