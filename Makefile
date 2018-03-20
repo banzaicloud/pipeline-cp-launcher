@@ -13,6 +13,7 @@ AZURE_RESOURCEGROUP ?=$(USER)_$(AZURE_LOCATION)
 
 GCLOUD_ZONE ?= $(shell gcloud config get-value compute/zone)
 GCLOUD_REGION ?= $(shell gcloud config get-value compute/region)
+GCLOUD_PROJECT_ID ?= $(shell gcloud config get-value core/project)
 
 .DEFAULT_GOAL := list
 .PHONY: list
@@ -101,7 +102,7 @@ create-gcloud: .check-env-gcloud .gcloud_install_cp_chart
 	@kubectl get svc -o json | jq -r '.items[] | select(.spec.type=="LoadBalancer") .status.loadBalancer.ingress[].ip'
 
 terminate-gcloud: .check-env-gcloud
-	@gcloud container clusters delete $(STACK_NAME)
+	@gcloud container clusters delete $(STACK_NAME) --project $(GKE_PROJECT_ID)
 
 .gcloud_create_k8s:
 	@/bin/echo "Creating Control Plane:" $(STACK_NAME)
@@ -110,12 +111,14 @@ terminate-gcloud: .check-env-gcloud
 		--num-nodes=1 \
 		--zone $(GCLOUD_ZONE) \
 		--no-enable-basic-auth \
+		--project $(GKE_PROJECT_ID) \
 		--machine-type=$(GKE_MACHINE_TYPE) 2>/dev/null
 	@/bin/echo "---"
 
 .gcloud_get_credential: .gcloud_create_k8s
 	@gcloud container clusters get-credentials $(STACK_NAME) \
-		--zone $(GCLOUD_ZONE) >/dev/null 2>&1 
+		--zone $(GCLOUD_ZONE) \
+		--project $(GKE_PROJECT_ID) >/dev/null 2>&1 
 
 .gcloud_install_helm_and_repo: .gcloud_get_credential
 	@kubectl -n kube-system create serviceaccount tiller >/dev/null
@@ -234,6 +237,9 @@ ifndef GKE_TYPE
 	$(error GKE_TYPE is undefined)
 endif
 
+ifndef GKE_PROJECT_ID
+	$(eval GKE_PROJECT_ID += $(GCLOUD_PROJECT_ID))
+endif
 
 .check-env-pipeline:
 
