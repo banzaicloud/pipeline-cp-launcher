@@ -48,7 +48,7 @@ For creating the control plane launcher through command line take a look at `.en
 
 * Navigate to: https://portal.azure.com/#create/Microsoft.Template
 
-* Click `Build your own template in editor` and copy-paste the content of [ARM template](https://raw.githubusercontent.com/banzaicloud/pipeline-cp-launcher/master/control-plane-arm.json) into the editor then click `Save`
+* Click `Build your own template in editor` and copy-paste the content of [ARM template](https://raw.githubusercontent.com/banzaicloud/pipeline-cp-launcher/0.3.0/control-plane-arm.json) into the editor then click `Save`
 
   <a href="images/ARMCreate.png" target="_blank"><img src="images/ARMCreate.png" height="130"></a><br>
   <a href="images/ARMEditor.png" target="_blank"><img src="images/ARMEditor.png" height="230"></a>
