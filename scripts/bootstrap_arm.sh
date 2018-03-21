@@ -158,5 +158,3 @@ cat extra_values.json | jq -r -M --arg jqHelmRetryAttempt "${PIPELINE_HELM_RETRY
 cat extra_values.json | jq -r -M --arg jqHelmRetrySleepSeconds "${PIPELINE_HELM_RETRYSLEEPSECONDS}" '.pipeline.Helm.retrySleepSeconds|=$jqHelmRetrySleepSeconds' > extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | json2yaml >> extra_values.yaml
 helm install . -f values.yaml -f extra_values.yaml --debug --wait --timeout 600
-mkdir -p /opt/pipeline/.ssh
-ssh-keygen -t rsa -b 4096 -f  /opt/pipeline/.ssh/id_rsa -N ""
