@@ -63,6 +63,8 @@ This json will contain all the credentials for you.
 
 For creating the control plane launcher through command line take a look at `.env.example` as a start to learn what environment variables are required by the `Makefile`.
 
+> If you don't have `jq` installed please follow this [page](https://github.com/stedolan/jq/wiki/Installation).
+
 * deploy - `make create-gcloud`
 * delete - `make terminate-gcloud`
 
