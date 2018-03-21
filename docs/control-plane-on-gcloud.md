@@ -138,4 +138,4 @@ helm install banzaicloud-stable/pipeline-cp \
 
 <a href="images/ControlPlaneInstall.png" target="_blank"><img src="images/ControlPlaneInstall.png" width="650"></a>
 
-The `GKE` credentials can be found in the *json* created [above](#Create-Credentials).
+The `GKE` credentials can be found in the *json* created [above](#create-credentials).
