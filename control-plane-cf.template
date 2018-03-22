@@ -173,6 +173,12 @@ Parameters:
     Default: '15'
     ConstraintDescription: Helm Retry Sleep Seconds
 
+  TrustedUserCAURL:
+    Description: 'The URL to download the SSH TrustedUserCAKeys from.'
+    Type: String
+    Default: ''
+    ConstraintDescription: Trusted User CA URL
+
 Resources:
   EC2Instance:
     Type: 'AWS::EC2::Instance'
@@ -275,6 +281,18 @@ Resources:
             - !Ref HelmRetrySleepSeconds
             - |+
 
+            - TRUSTED_USER_CA_URL=
+            - !Ref TrustedUserCAURL
+            - |+
+
+            - >
+              if [[ ! -z "${TRUSTED_USER_CA_URL}" ]]; then
+                curl ${TRUSTED_USER_CA_URL} > /etc/ssh/trusted-user-ca-keys.pem
+                echo -e "\nTrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
+                service ssh restart
+              fi
+            - |+
+
             - >
               kubeadm init --skip-preflight-checks --apiserver-advertise-address
               ${PRIVATEIP} --apiserver-cert-extra-sans ${PUBLICIP} ${PRIVATEIP}
@@ -294,17 +312,17 @@ Resources:
             - |
               mkdir -p $HOME/.kube
             - |
-              sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+              cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
             - |
-              sudo chown $(id -u):$(id -g) $HOME/.kube/config
+              chown $(id -u):$(id -g) $HOME/.kube/config
             - |+
 
             - |
               mkdir -p /home/ubuntu/.kube
             - |
-              sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+              cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
             - |
-              sudo chown ubuntu:ubuntu /home/ubuntu/.kube/config
+              chown ubuntu:ubuntu /home/ubuntu/.kube/config
             - |
               export KUBECONFIG=/home/ubuntu/.kube/config
             - |+
