@@ -16,6 +16,9 @@ GCLOUD_ZONE ?= $(shell gcloud config get-value compute/zone)
 GCLOUD_REGION ?= $(shell gcloud config get-value compute/region)
 GCLOUD_PROJECT_ID ?= $(shell gcloud config get-value core/project)
 
+VAULT_ROLE_ID ?= $(shell vault read -field role_id auth/approle/role/hostrole/role-id)
+VAULT_SECRET_ID ?= $(shell vault write -f -field secret_id auth/approle/role/hostrole/secret-id)
+
 .DEFAULT_GOAL := list
 .PHONY: list
 
@@ -53,7 +56,9 @@ create-aws: .check-env-aws
 		ParameterKey=PipelineImageTag,ParameterValue=$(PIPELINE_IMAGE_TAG) \
 		ParameterKey=HelmRetryAttempt,ParameterValue=$(PIPELINE_HELM_RETRYATTEMPT) \
 		ParameterKey=HelmRetrySleepSeconds,ParameterValue=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
-		ParameterKey=TrustedUserCAURL,ParameterValue=$(TRUSTED_USER_CA_URL)
+		ParameterKey=TrustedUserCAURL,ParameterValue=$(TRUSTED_USER_CA_URL) \
+		ParameterKey=VaultRoleID,ParameterValue=$(VAULT_ROLE_ID) \
+		ParameterKey=VaultSecretID,ParameterValue=$(VAULT_SECRET_ID) \
 
 terminate-aws:
 	aws cloudformation delete-stack \
@@ -85,7 +90,9 @@ terminate-aws:
 			azureTenantId=$(AZURE_TENANT_ID) \
 			pipelineHelmRetryattempt=$(PIPELINE_HELM_RETRYATTEMPT) \
 			pipelineHelmRetrysleepseconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
-			trustedUserCaUrl=$(TRUSTED_USER_CA_URL)
+			trustedUserCaUrl=$(TRUSTED_USER_CA_URL) \
+			vaultRoleId=$(VAULT_ROLE_ID) \
+			vaultSecretId=$(VAULT_SECRET_ID)
 
 create-azure: .check-env-azure
 	az group create --name $(AZURE_RESOURCEGROUP) --location $(AZURE_LOCATION)
