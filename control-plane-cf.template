@@ -348,21 +348,7 @@ Resources:
               kubectl create clusterrolebinding tiller-cluster-rule
               --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
             - |
-              helm init --service-account tiller
-            - |+
-
-            - |
-              until helm list
-            - |
-              do
-            - |2
-                echo "Waiting...."
-            - |2
-                kubectl get po --all-namespaces
-            - |2
-                sleep 5
-            - |
-              done
+              helm init --service-account tiller --wait
             - |+
 
             - |

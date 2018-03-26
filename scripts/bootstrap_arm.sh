@@ -116,14 +116,7 @@ done
 kubectl taint nodes $(hostname -s) node-role.kubernetes.io/master:NoSchedule-
 kubectl create serviceaccount --namespace kube-system tiller
 kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-helm init --service-account tiller
-
-until helm list
-do
-  echo "Waiting...."
-  kubectl get po --all-namespaces
-  sleep 5
-done
+helm init --service-account tiller --wait
 
 mkdir /opt/helm
 
