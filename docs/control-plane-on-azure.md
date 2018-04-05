@@ -60,6 +60,8 @@ For creating the control plane launcher through command line take a look at `.en
   * **Specify SSH Public Key**
 
     <a href="images/ARMPubKey.png" target="_blank"><img src="images/ARMPubKey.png" height="110"></a>
+    
+  >Note: the SSH user name is `pipeline`
 
   * **SMTP Server Address/User/Password/From**
     * these are optional. Fill this section to receive cluster related alerts through email.
