@@ -39,7 +39,7 @@ list:
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
 
 create-minikube: .check-env-pipeline
-	minikube start --bootstrapper kubeadm $(MINIKUBE_FLAGS)
+	minikube start --bootstrapper kubeadm --memory 4096 $(MINIKUBE_FLAGS)
 	helm repo add banzaicloud-stable $(CHART_REPO)
 	helm repo update
 	helm init --wait
@@ -51,7 +51,8 @@ create-minikube: .check-env-pipeline
 		--set drone.server.env.DRONE_ORGS=$(GITHUB_ORGS) \
 		--set pipeline.image.tag=$(PIPELINE_IMAGE_TAG) \
 		--set pipeline.Helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
-		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS)
+		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+		--timeout 600
 	@echo "GitHub Authorization callback URL: `minikube service --url cp-launcher-traefik | head -1`/auth/github/callback"
 
 terminate-minikube:
