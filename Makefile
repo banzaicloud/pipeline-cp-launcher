@@ -37,7 +37,7 @@ create-minikube: .check-env-pipeline
 	helm repo add banzaicloud-stable $(CHART_REPO)
 	helm repo update
 	helm init --wait
-	helm install banzaicloud-stable/pipeline-cp \
+	helm install --name cp-launcher banzaicloud-stable/pipeline-cp \
 		--set global.auth.clientid=$(GITHUB_CLIENT) \
 		--set global.auth.clientsecret=$(GITHUB_SECRET) \
 		--set prometheus.ingress.password=$(PROM_ING_PASS) \
@@ -45,7 +45,11 @@ create-minikube: .check-env-pipeline
 		--set drone.server.env.DRONE_ORGS=$(GITHUB_ORGS) \
 		--set pipeline.image.tag=$(PIPELINE_IMAGE_TAG) \
 		--set pipeline.Helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
-		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS)
+		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+		--timeout 600 \
+		--wait
+	$(eval URL := $(shell minikube service --url cp-launcher-traefik | head -1))
+	@echo "GitHub Authorization callback URL: $(URL)/auth/github/callback"
 
 terminate-minikube:
 	minikube delete
