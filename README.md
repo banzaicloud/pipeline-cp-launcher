@@ -22,3 +22,7 @@ For launching `Control Plane` on `Azure` check out details at see details at [Co
 ## Pipeline control plane launcher on Google Cloud
 
 For launching `Control Plane` on `Google Cloud` check out details at see details at [Control Plane on Google Cloud](docs/control-plane-on-gcloud.md).
+
+## Pipeline control plane launcher on Minikube
+
+For launching `Control Plane` on `Minikube` check out details at [Control Plane on Minikube](docs/control-plane-on-minikube.md).
