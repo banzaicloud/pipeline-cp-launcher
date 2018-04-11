@@ -52,8 +52,11 @@ create-minikube: .check-env-pipeline
 		--set pipeline.image.tag=$(PIPELINE_IMAGE_TAG) \
 		--set pipeline.Helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
 		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
-		--timeout 600
+		--timeout 9999
 	@echo "GitHub Authorization callback URL: `minikube service --url cp-launcher-traefik | head -1`/auth/github/callback"
+	@echo "Pipeline login: `minikube service --url cp-launcher-traefik | head -1`/auth/github/login"
+	@echo "Grafana login: `minikube service --url cp-launcher-traefik | head -1`/grafana"
+	@echo "Prometheus: `minikube service --url cp-launcher-traefik | head -1`/prometheus"
 
 terminate-minikube:
 	minikube delete

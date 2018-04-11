@@ -17,9 +17,9 @@ For creating the control plane launcher through command line take a look at `.en
 
 ## Deployment end points
 
-Check the output section of the deployed cloud formation template for the endpoints where the deployed services can be reached:
+Check the output section of of the make command for the endpoints where the deployed services can be reached:
 
-* PublicIP - the IP of the host where Pipeline is running
-* Pipeline - the endpoint for the Pipelne REST API
+* GitHub Authorization callback URL - The URL that you should paste into the GitHub OAuth application setup page.
+* Pipeline login - the endpoint for the Pipelne login page
 * Grafana - the endpoint for Grafana
 * PrometheusServer - the endpoint for [federated](https://banzaicloud.com/blog/prometheus-federation/) Prometheus server.
