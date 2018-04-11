@@ -10,6 +10,8 @@ SMTP_TO ?=""
 SMTP_FROM ?=""
 TRUSTED_USER_CA_URL ?=""
 
+CHART_REPO ?="http://kubernetes-charts.banzaicloud.com/branch/master"
+
 AZURE_RESOURCEGROUP ?=$(USER)_$(AZURE_LOCATION)
 
 GCLOUD_ZONE ?= $(shell gcloud config get-value compute/zone)
@@ -29,6 +31,24 @@ _no-target-specified:
 .PHONY: list
 list:
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
+
+create-minikube: .check-env-pipeline
+	minikube start --vm-driver hyperkit --bootstrapper kubeadm
+	helm repo add banzaicloud-stable $(CHART_REPO)
+	helm repo update
+	helm init --wait
+	helm install banzaicloud-stable/pipeline-cp \
+		--set global.auth.clientid=$(GITHUB_CLIENT) \
+		--set global.auth.clientsecret=$(GITHUB_SECRET) \
+		--set prometheus.ingress.password=$(PROM_ING_PASS) \
+		--set grafana.server.adminPassword=$(GRAFANA_PASS) \
+		--set drone.server.env.DRONE_ORGS=$(GITHUB_ORGS) \
+		--set pipeline.image.tag=$(PIPELINE_IMAGE_TAG) \
+		--set pipeline.Helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
+		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS)
+
+terminate-minikube:
+	minikube delete
 
 create-aws: .check-env-aws
 	aws cloudformation create-stack \
