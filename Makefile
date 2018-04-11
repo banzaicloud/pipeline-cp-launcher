@@ -45,9 +45,7 @@ create-minikube: .check-env-pipeline
 		--set drone.server.env.DRONE_ORGS=$(GITHUB_ORGS) \
 		--set pipeline.image.tag=$(PIPELINE_IMAGE_TAG) \
 		--set pipeline.Helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
-		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
-		--timeout 600 \
-		--wait
+		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS)
 	$(eval URL := $(shell minikube service --url cp-launcher-traefik | head -1))
 	@echo "GitHub Authorization callback URL: $(URL)/auth/github/callback"
 
