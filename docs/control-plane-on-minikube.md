@@ -6,6 +6,7 @@ On `Minikube` we use a your local machine in order to provision a Pipeline contr
 ## Pre-requisites
 
 1. [Minikube](https://github.com/kubernetes/minikube/releases) installation
+    - [Hyperkit](https://github.com/kubernetes/minikube/blob/master/docs/drivers.md#hyperkit-driver) installation on OSX
 2. [Helm](https://github.com/kubernetes/helm/blob/master/docs/install.md) installation
 
 ## Command line
