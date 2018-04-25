@@ -38,21 +38,29 @@ _no-target-specified:
 list:
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
 
-create-minikube: .check-env-pipeline
-	minikube start --bootstrapper kubeadm --memory 4096 $(MINIKUBE_FLAGS)
+create-local: .check-env-pipeline
 	helm repo add banzaicloud-stable $(CHART_REPO)
 	helm repo update
-	helm init --wait
-	helm install --name cp-launcher banzaicloud-stable/pipeline-cp \
+	helm init --upgrade --wait
+	helm upgrade --install cp-launcher banzaicloud-stable/pipeline-cp \
 		--set global.auth.clientid=$(GITHUB_CLIENT) \
 		--set global.auth.clientsecret=$(GITHUB_SECRET) \
 		--set prometheus.ingress.password=$(PROM_ING_PASS) \
 		--set grafana.server.adminPassword=$(GRAFANA_PASS) \
 		--set drone.server.env.DRONE_ORGS=$(GITHUB_ORGS) \
+		--set drone.server.host=http://cp-launcher-drone \
 		--set pipeline.image.tag=$(PIPELINE_IMAGE_TAG) \
 		--set pipeline.Helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
 		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
 		--timeout 9999
+
+terminate-local:
+	helm delete --purge cp-launcher
+
+.create-minikube:
+	minikube start --bootstrapper kubeadm --memory 4096 $(MINIKUBE_FLAGS)
+
+create-minikube: .check-env-pipeline .create-minikube create-local
 	@echo "GitHub Authorization callback URL: `minikube service --url cp-launcher-traefik | head -1`/auth/github/callback"
 	@echo "Pipeline login: `minikube service --url cp-launcher-traefik | head -1`/auth/github/login"
 	@echo "Grafana login: `minikube service --url cp-launcher-traefik | head -1`/grafana"
