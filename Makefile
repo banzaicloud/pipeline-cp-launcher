@@ -10,7 +10,13 @@ SMTP_TO ?=""
 SMTP_FROM ?=""
 TRUSTED_USER_CA_URL ?=""
 
-CHART_REPO ?="http://kubernetes-charts.banzaicloud.com/branch/master"
+ifeq ($(shell git describe --exact-match --tags 2>/dev/null || echo "branch"),branch)
+	CHART_REPO ?= "http://kubernetes-charts.banzaicloud.com/branch/$(shell git rev-parse --abbrev-ref HEAD)"
+	PIPELINE_HELM_BANZAIREPOSITORYURL ?= $(CHART_REPO)
+else
+	CHART_REPO ?= "http://kubernetes-charts.banzaicloud.com/release/$(shell git describe --exact-match --tags)"
+	PIPELINE_HELM_BANZAIREPOSITORYURL ?= $(CHART_REPO)
+endif
 
 AZURE_RESOURCEGROUP ?=$(USER)_$(AZURE_LOCATION)
 
@@ -50,8 +56,9 @@ create-local: .check-env-pipeline
 		--set drone.server.env.DRONE_ORGS=$(GITHUB_ORGS) \
 		--set drone.server.host=http://cp-launcher-drone \
 		--set pipeline.image.tag=$(PIPELINE_IMAGE_TAG) \
-		--set pipeline.Helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
-		--set pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+		--set pipeline.helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
+		--set pipeline.helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+		--set pipeline.helm.banzaiRepositoryURL=$(PIPELINE_HELM_BANZAIREPOSITORYURL) \
 		--timeout 9999
 
 terminate-local:
@@ -95,6 +102,7 @@ create-aws: .check-env-aws
 		ParameterKey=PipelineImageTag,ParameterValue=$(PIPELINE_IMAGE_TAG) \
 		ParameterKey=HelmRetryAttempt,ParameterValue=$(PIPELINE_HELM_RETRYATTEMPT) \
 		ParameterKey=HelmRetrySleepSeconds,ParameterValue=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+		ParameterKey=HelmBanzaiRepositoryURL,ParameterValue=$(PIPELINE_HELM_BANZAIREPOSITORYURL) \
 		ParameterKey=TrustedUserCAURL,ParameterValue=$(TRUSTED_USER_CA_URL) \
 		ParameterKey=VaultRoleID,ParameterValue=$(VAULT_ROLE_ID) \
 		ParameterKey=VaultSecretID,ParameterValue=$(VAULT_SECRET_ID) \
@@ -131,7 +139,8 @@ terminate-aws:
 			pipelineHelmRetrysleepseconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
 			trustedUserCaUrl=$(TRUSTED_USER_CA_URL) \
 			vaultRoleId=$(VAULT_ROLE_ID) \
-			vaultSecretId=$(VAULT_SECRET_ID)
+			vaultSecretId=$(VAULT_SECRET_ID) \
+			banzaiRepositoryURL=$(PIPELINE_HELM_BANZAIREPOSITORYURL)
 
 create-azure: .check-env-azure
 	az group create --name $(AZURE_RESOURCEGROUP) --location $(AZURE_LOCATION)
@@ -175,7 +184,7 @@ terminate-gcloud: .check-env-gcloud
 	@helm init --service-account=tiller >/dev/null
 	@/bin/echo -n "Installing Helm."
 	@until false; do sleep 2; /bin/echo -n "."; helm list >/dev/null 2>&1 && /bin/echo "done" && break; done
-	@helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com > /dev/null
+	@helm repo add banzaicloud-stable $(CHART_REPO) > /dev/null
 
 .gcloud_install_cp_chart: .gcloud_install_helm_and_repo
 	@/bin/echo "Helm install banzaicloud-stable/pipeline-cp"
@@ -200,8 +209,9 @@ terminate-gcloud: .check-env-gcloud
 		--set=pipeline.image.tag=$(PIPELINE_IMAGE_TAG) \
 		--set=prometheus.ingress.password=$(PROM_ING_PASS) \
 		--set=grafana.server.adminPassword=$(GRAFANA_PASS) \
-		--set=pipeline.Helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
-		--set=pipeline.Helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+		--set=pipeline.helm.retryAttempt=$(PIPELINE_HELM_RETRYATTEMPT) \
+		--set=pipeline.helm.retrySleepSeconds=$(PIPELINE_HELM_RETRYSLEEPSECONDS) \
+		--set=pipeline.helm.banzaiRepositoryURL=$(PIPELINE_HELM_BANZAIREPOSITORYURL) \
 		1>/dev/null
 
 .check-env-azure: .check-env-pipeline

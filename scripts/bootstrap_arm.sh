@@ -134,7 +134,7 @@ mkdir /opt/helm
 cd /opt/helm
 export HELM_HOME=/opt/helm/.helm
 helm init -c
-helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com
+helm repo add banzaicloud-stable $CHART_REPO
 helm repo update
 helm repo list
 helm fetch banzaicloud-stable/pipeline-cp --untar
@@ -164,7 +164,8 @@ cat extra_values.json | jq -r -M --arg jqpiplineazureclientid "${AZURE_CLIENT_ID
 cat extra_values.json | jq -r -M --arg jqpiplineazureclientsecret "${AZURE_CLIENT_SECRET}" '.pipeline.azureClientSecret|=$jqpiplineazureclientsecret' >  extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqpiplineazuresubscriptionid "${AZURE_SUBSCRIPTION_ID}" '.pipeline.azureSubscriptionId|=$jqpiplineazuresubscriptionid' >  extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | jq -r -M --arg jqpiplineazuretenantid "${AZURE_TENANT_ID}" '.pipeline.azureTenantId|=$jqpiplineazuretenantid' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqHelmRetryAttempt "${PIPELINE_HELM_RETRYATTEMPT}" '.pipeline.Helm.retryAttempt|=$jqHelmRetryAttempt' > extra_values.tmp && mv extra_values.tmp extra_values.json
-cat extra_values.json | jq -r -M --arg jqHelmRetrySleepSeconds "${PIPELINE_HELM_RETRYSLEEPSECONDS}" '.pipeline.Helm.retrySleepSeconds|=$jqHelmRetrySleepSeconds' > extra_values.tmp && mv extra_values.tmp extra_values.json
+cat extra_values.json | jq -r -M --arg jqHelmRetryAttempt "${PIPELINE_HELM_RETRYATTEMPT}" '.pipeline.helm.retryAttempt|=$jqHelmRetryAttempt' > extra_values.tmp && mv extra_values.tmp extra_values.json
+cat extra_values.json | jq -r -M --arg jqHelmRetrySleepSeconds "${PIPELINE_HELM_RETRYSLEEPSECONDS}" '.pipeline.helm.retrySleepSeconds|=$jqHelmRetrySleepSeconds' > extra_values.tmp && mv extra_values.tmp extra_values.json
+cat extra_values.json | jq -r -M --arg jqHelmBanzaiRepositoryURL "${PIPELINE_HELM_BANZAIREPOSITORYURL}" '.pipeline.helm.banzaiRepositoryURL|=$jqHelmBanzaiRepositoryURL' > extra_values.tmp && mv extra_values.tmp extra_values.json
 cat extra_values.json | json2yaml >> extra_values.yaml
 helm install . -f values.yaml -f extra_values.yaml --debug --wait --timeout 600
