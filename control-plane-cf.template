@@ -113,7 +113,7 @@ Parameters:
   PipelineImageTag:
     Description: Pipeline docker image tag
     Type: String
-    Default: '0.3.0'
+    Default: 'latest'
     ConstraintDescription: ''
 
   PromIngUser:
@@ -172,6 +172,11 @@ Parameters:
     Type: String
     Default: '15'
     ConstraintDescription: Helm Retry Sleep Seconds
+  HelmBanzaiRepositoryURL:
+    Description: 'The Helm URL to Banzai Cloud stable repository'
+    Type: String
+    Default: 'http://kubernetes-charts.banzaicloud.com/branch/master'
+    ConstraintDescription: Helm repo url
 
   TrustedUserCAURL:
     Description: 'The URL to download the SSH TrustedUserCAKeys from.'
@@ -188,6 +193,12 @@ Parameters:
     Type: String
     Default: ''
     ConstraintDescription: Vault SecretID
+  
+  ChartRepo:
+    Description: 'The Helm URL to Banzai Cloud stable repository for Control Plane installation'
+    Type: String
+    Default: 'http://kubernetes-charts.banzaicloud.com/branch/master'
+    ConstraintDescription: Helm repo url for Control Plane
 
 Resources:
   EC2Instance:
@@ -291,6 +302,10 @@ Resources:
             - !Ref HelmRetrySleepSeconds
             - |+
 
+            - PIPELINE_HELM_BANZAIREPOSITORYURL=
+            - !Ref HelmBanzaiRepositoryURL
+            - |+
+
             - TRUSTED_USER_CA_URL=
             - !Ref TrustedUserCAURL
             - |+
@@ -301,6 +316,10 @@ Resources:
 
             - VAULT_SECRET_ID=
             - !Ref VaultSecretID
+            - |+
+
+            - CHART_REPO=
+            - !Ref ChartRepo
             - |+
 
             - >
@@ -384,7 +403,7 @@ Resources:
             - |
                 helm init -c
             - |
-                helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com/
+                helm repo add banzaicloud-stable $CHART_REPO
             - |
                 helm repo update
             - |
@@ -439,6 +458,8 @@ Resources:
               cat extra_values.json | jq -r -M --arg jqHelmRetryAttempt "${PIPELINE_HELM_RETRYATTEMPT}" '.pipeline.Helm.retryAttempt|=$jqHelmRetryAttempt' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
               cat extra_values.json | jq -r -M --arg jqHelmRetrySleepSeconds "${PIPELINE_HELM_RETRYSLEEPSECONDS}" '.pipeline.Helm.retrySleepSeconds|=$jqHelmRetrySleepSeconds' > extra_values.tmp && mv extra_values.tmp extra_values.json
+            - |
+              cat extra_values.json | jq -r -M --arg jqHelmBanzaiRepositoryURL "${}" '.pipeline.Helm.banzaiRepositoryURL|=$jqHelmBanzaiRepositoryURL' > extra_values.tmp && mv extra_values.tmp extra_values.json
             - |
               cat extra_values.json | json2yaml >> extra_values.yaml
             - |
