@@ -45,9 +45,11 @@ list:
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
 
 create-local: .check-env-pipeline
+	kubectl -n kube-system create serviceaccount tiller >/dev/null
+	kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller >/dev/null
 	helm repo add banzaicloud-stable $(CHART_REPO)
 	helm repo update
-	helm init --upgrade --wait
+	helm init --upgrade --wait --service-account=tiller >/dev/null
 	helm upgrade --install cp-launcher banzaicloud-stable/pipeline-cp \
 		--set global.auth.clientid=$(GITHUB_CLIENT) \
 		--set global.auth.clientsecret=$(GITHUB_SECRET) \
