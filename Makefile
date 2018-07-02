@@ -65,6 +65,7 @@ create-local: .check-env-pipeline
 
 terminate-local:
 	helm delete --purge cp-launcher
+	kubectl delete secret bank-vaults
 
 .create-minikube:
 	minikube start --bootstrapper kubeadm --memory 4096 $(MINIKUBE_FLAGS)
