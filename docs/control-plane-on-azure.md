@@ -14,6 +14,14 @@ $ exec -l $SHELL
 $ az login
 ```
 
+Create a `Service Principal` with `owner` role for the Azure Active Directory using the following command.
+> The `owner` role is needed to assign role(s) to Virtual Machines
+
+```bash
+$ az ad sp create-for-rbac --role 'owner'
+
+```
+
 You should get something like:
 
 ```json
