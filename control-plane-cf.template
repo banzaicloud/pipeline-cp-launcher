@@ -90,12 +90,23 @@ Parameters:
     Type: String
     Default: ''
     ConstraintDescription: ''
+  VaultBucketName:
+    Description: 'Name of the bucket where Vault stores data. The bucket should be in the current region.'
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
+  VaultKMSKeyID:
+    Description: 'ID of the KMS key which Vault uses to encrypt unseal keys. The key should be in the current region.'
+    Type: String
+    Default: ''
+    ConstraintDescription: ''
 Resources:
   EC2Instance:
     Type: 'AWS::EC2::Instance'
     Properties:
       InstanceType: !Ref InstanceType
       ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      IamInstanceProfile: !Ref InstanceProfile
       Tags:
         - Key: Name
           Value: !Ref InstanceName
@@ -179,6 +190,37 @@ Resources:
       Handle:
         Ref: "WaitConditionHandle"
       Timeout: 600
+
+  VaultRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        !Sub |
+          Version: '2012-10-17'
+          Statement:
+          - Action:
+            - s3:GetObject
+            - s3:PutObject
+            Effect: Allow
+            Resource: arn:aws:s3:::${VaultBucketName}/*
+          - Action:
+            - s3:ListBucket
+            Effect: Allow
+            Resource: arn:aws:s3:::${VaultBucketName}/
+          -  Action:
+            - kms:Decrypt
+            - kms:Encrypt
+            Effect: Allow
+            Resource: 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${VaultKMSKeyID}'
+          RoleName: VaultRole
+
+  InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: String
+      Roles:
+        - VaultRole
+      InstanceProfileName: vault
 
 Outputs:
   InstanceId:
