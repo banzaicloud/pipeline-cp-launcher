@@ -1,16 +1,16 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  AWS CloudFormation Sample Template EC2InstanceWithSecurityGroupSample: Create
-  an Amazon EC2 instance running the Amazon Linux AMI. The AMI is chosen based
-  on the region in which the stack is run. This example creates an EC2 security
-  group for the instance to give you SSH access. **WARNING** This template
-  creates an Amazon EC2 instance. You will be billed for the AWS resources used
-  if you create a stack from this template.
+  AWS CloudFormation Pipeline Control Plane
+Mappings:
+  RegionMap:
+    eu-west-1:
+      AMI: "ami-02d95b6fee2869fc7"
 Parameters:
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type: 'AWS::EC2::KeyPair::KeyName'
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
+    AllowedPattern: '.+'
   InstanceType:
     Description: Control Plane EC2 instance type
     Type: String
@@ -40,6 +40,7 @@ Parameters:
       - c4.4xlarge
       - c4.8xlarge
     ConstraintDescription: must be a valid EC2 instance type.
+
   SSHLocation:
     Description: The IP address range that can be used to SSH to the EC2 instances
     Type: String
@@ -48,14 +49,7 @@ Parameters:
     Default: 0.0.0.0/0
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
-  HTTPLocation:
-    Description: The IP address range that can be used to HTTP to the EC2 instances
-    Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 0.0.0.0/0
-    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
   SecretAccessKey:
     Description: ''
     Type: String
@@ -72,79 +66,8 @@ Parameters:
   InstanceName:
     Description: ''
     Type: String
-    Default: ''
+    Default: 'pipeline-control-plane'
     ConstraintDescription: Control plane EC2 instance name
-  SmtpServerAddress:
-    Description: ''
-    Type: String
-    Default: 'localhost:25'
-    ConstraintDescription: ''
-  SmtpUser:
-    Description: ''
-    Type: String
-    Default: 'alert@example.com'
-    ConstraintDescription: ''
-  SmtpPassword:
-    Description: ''
-    NoEcho: 'true'
-    Type: String
-    Default: 'user_password'
-    ConstraintDescription: ''
-  SmtpFrom:
-    Description: ''
-    Type: String
-    Default: 'alert@example.com'
-    ConstraintDescription: ''
-  SmtpTo:
-    Description: ''
-    Type: String
-    Default: 'to@example.com'
-    ConstraintDescription: ''
-  SlackWebhookUrl:
-    Description: Slack Webhook URL
-    Type: String
-    Default: 'https://hooks.slack.com/'
-    ConstraintDescription: 'Insert slack webhook url'
-  SlackChannel:
-    Description: 'Specify a Slack channel by name with "channel": "#other-channel", or send a Slackbot message to a specific user with "channel": "@username"'
-    Type: String
-    Default: ''
-    ConstraintDescription: ''
-  PipelineImageTag:
-    Description: Pipeline docker image tag
-    Type: String
-    Default: 'latest'
-    ConstraintDescription: ''
-
-  PromIngUser:
-    Description: ''
-    Type: String
-    Default: admin
-    ConstraintDescription: ''
-  PromIngPass:
-    Description: ''
-    NoEcho: 'true'
-    Type: String
-    Default: ''
-    ConstraintDescription: ''
-
-  GrafanaUser:
-    Description: ''
-    Type: String
-    Default: admin
-    ConstraintDescription: ''
-  GrafanaPass:
-    Description: ''
-    NoEcho: 'true'
-    Type: String
-    Default: ''
-    ConstraintDescription: ''
-  ImageId:
-    Description: Pick the image id from here https://github.com/banzaicloud/pipeline-cp-launcher/blob/0.3.0/README.md
-    Type: String
-    ConstraintDescription: ''
-    Default: 'ami-ece5b095'
-
   GithubOrgs:
     Description: Comma-separated list of authorized Github organizations.
     Type: String
@@ -161,53 +84,23 @@ Parameters:
     Type: String
     Default: ''
     ConstraintDescription: ''
-
-  HelmRetryAttempt:
-    Description: 'How many times should pipeline wait for the tiller to come up.'
-    Type: String
-    Default: '30'
-    ConstraintDescription: Helm Retry HelmRetryAttempt
-  HelmRetrySleepSeconds:
-    Description: 'How many seconds should pipeline wait for the tiller to come up.'
-    Type: String
-    Default: '15'
-    ConstraintDescription: Helm Retry Sleep Seconds
-  HelmBanzaiRepositoryURL:
-    Description: 'The Helm URL to Banzai Cloud stable repository'
-    Type: String
-    Default: 'http://kubernetes-charts.banzaicloud.com/branch/master'
-    ConstraintDescription: Helm repo url
-
-  TrustedUserCAURL:
-    Description: 'The URL to download the SSH TrustedUserCAKeys from.'
+  GithubToken:
+    Description: Github personal token
+    NoEcho: 'true'
     Type: String
     Default: ''
-    ConstraintDescription: Trusted User CA URL
-  VaultRoleID:
-    Description: 'RoleID of the AppRole to authenticate against when calling Vault.'
-    Type: String
-    Default: ''
-    ConstraintDescription: Vault RoleID
-  VaultSecretID:
-    Description: 'SecretID belonging to RoleID in the AppRile to authenticate against when calling Vault.'
-    Type: String
-    Default: ''
-    ConstraintDescription: Vault SecretID
-  
-  ChartRepo:
-    Description: 'The Helm URL to Banzai Cloud stable repository for Control Plane installation'
-    Type: String
-    Default: 'http://kubernetes-charts.banzaicloud.com/branch/master'
-    ConstraintDescription: Helm repo url for Control Plane
-
+    ConstraintDescription: ''
 Resources:
   EC2Instance:
     Type: 'AWS::EC2::Instance'
     Properties:
       InstanceType: !Ref InstanceType
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
       Tags:
         - Key: Name
           Value: !Ref InstanceName
+        - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref "AWS::StackName"] ]
+          Value: "owned"
       UserData: !Base64
         'Fn::Join':
           - ''
@@ -234,54 +127,6 @@ Resources:
               Ref: AccessKeyID
             - |+
 
-            - SMTP_SERVER_ADDRESS=
-            - !Ref SmtpServerAddress
-            - |+
-
-            - SMTP_USERNAME=
-            - !Ref SmtpUser
-            - |+
-
-            - SMTP_PASSWORD=
-            - !Ref SmtpPassword
-            - |+
-
-            - SMTP_TO=
-            - !Ref SmtpTo
-            - |+
-
-            - SMTP_FROM=
-            - !Ref SmtpFrom
-            - |+
-
-            - SLACK_WEBHOOK_URL=
-            - !Ref SlackWebhookUrl
-            - |+
-            
-            - PIPELINE_IMAGE_TAG=
-            - !Ref PipelineImageTag
-            - |+
-
-            - PROM_ING_USER=
-            - !Ref PromIngUser
-            - |+
-
-            - PROM_ING_PASS=
-            - !Ref PromIngPass
-            - |+
-
-            - GRAFANA_USER=
-            - !Ref GrafanaUser
-            - |+
-
-            - GRAFANA_PASS=
-            - !Ref GrafanaPass
-            - |+
-
-            - SLACK_CHANNEL=
-            - !Ref SlackChannel
-            - |+
-
             - GITHUB_ORGS=
             - !Ref GithubOrgs
             - |+
@@ -294,184 +139,25 @@ Resources:
             - !Ref GithubSecret
             - |+
 
-            - PIPELINE_HELM_RETRYATTEMPT=
-            - !Ref HelmRetryAttempt
+
+            - GITHUB_TOKEN=
+            - !Ref GithubToken
             - |+
 
-            - PIPELINE_HELM_RETRYSLEEPSECONDS=
-            - !Ref HelmRetrySleepSeconds
-            - |+
-
-            - PIPELINE_HELM_BANZAIREPOSITORYURL=
-            - !Ref HelmBanzaiRepositoryURL
-            - |+
-
-            - TRUSTED_USER_CA_URL=
-            - !Ref TrustedUserCAURL
-            - |+
-
-            - VAULT_ROLE_ID=
-            - !Ref VaultRoleID
-            - |+
-
-            - VAULT_SECRET_ID=
-            - !Ref VaultSecretID
-            - |+
-
-            - CHART_REPO=
-            - !Ref ChartRepo
+            - SIGNAL_URL=
+            - !Ref WaitConditionHandle
             - |+
 
             - >
-              if [[ ! -z "${TRUSTED_USER_CA_URL}" ]]; then
-                curl ${TRUSTED_USER_CA_URL} > /etc/ssh/trusted-user-ca-keys.pem
-                echo -e "\nTrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
-                if [[ ! -z "${VAULT_ROLE_ID}" && ! -z "${VAULT_SECRET_ID}" ]]; then
-                  export VAULT_ADDR=${TRUSTED_USER_CA_URL%/v1*}
-                  export VAULT_TOKEN=$(vault write -field token auth/approle/login role_id=${VAULT_ROLE_ID} secret_id=${VAULT_SECRET_ID})
-                  vault write -field=signed_key ssh-host-signer/sign/hostrole cert_type=host public_key=@/etc/ssh/ssh_host_rsa_key.pub > /etc/ssh/ssh_host_rsa_key-cert.pub
-                  echo -e "\nHostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub" >> /etc/ssh/sshd_config
-                fi
-                service ssh restart
-              fi
-            - |+
+              curl -X PUT -H 'Content-Type:' --data-binary '{"Status" : "SUCCESS","Reason" : "Configuration Complete"}' "${SIGNAL_URL}"
 
-            - >
-              kubeadm init --skip-preflight-checks --apiserver-advertise-address
-              ${PRIVATEIP} --apiserver-cert-extra-sans ${PUBLICIP} ${PRIVATEIP}
-            - |+
-
-            - >
-              kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.2.1/weave-daemonset-k8s-1.7.yaml --kubeconfig /etc/kubernetes/admin.conf
-            - |+
-
-            - >
-              sed -i -e 's|- --insecure-port=0|-
-              --insecure-port=0\n    -
-              --service-node-port-range=30-32767|'
-              /etc/kubernetes/manifests/kube-apiserver.yaml
-            - |+
-
-            - |
-              mkdir -p $HOME/.kube
-            - |
-              cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-            - |
-              chown $(id -u):$(id -g) $HOME/.kube/config
-            - |+
-
-            - |
-              mkdir -p /home/ubuntu/.kube
-            - |
-              cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
-            - |
-              chown ubuntu:ubuntu /home/ubuntu/.kube/config
-            - |
-              export KUBECONFIG=/home/ubuntu/.kube/config
-            - |+
-
-            - |
-              until kubectl get po --all-namespaces
-            - |
-              do
-            - |2
-                sleep 5
-            - |2
-                echo "Waiting...."
-            - |
-              done
-            - |+
-
-            - >
-              kubectl taint nodes $(hostname -s)
-              node-role.kubernetes.io/master:NoSchedule-
-            - |
-              kubectl create serviceaccount --namespace kube-system tiller
-            - >
-              kubectl create clusterrolebinding tiller-cluster-rule
-              --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-            - |
-              helm init --service-account tiller --wait
-            - |+
-
-            - |
-                mkdir /opt/helm
-            - |
-                cd /opt/helm
-            - |
-                export HELM_HOME=/opt/helm/.helm
-            - |
-                helm init -c
-            - |
-                helm repo add banzaicloud-stable $CHART_REPO
-            - |
-                helm repo update
-            - |
-                helm repo list
-            - |2
-                helm fetch banzaicloud-stable/pipeline-cp --untar
-            - |+
-
-            - |
-              cd /opt/helm/pipeline-cp/
-            - |
-              cp sample_values.json extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqsecret "${SECRET_ACCESS_KEY}" '.pipeline.awsSecretAccessKey|=$jqsecret' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqaccid "${ACCESS_KEY_ID}" '.pipeline.awsAccessKeyId|=$jqaccid' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqslackurl "${SLACK_WEBHOOK_URL}" '.pipeline.Slack.WebhookUrl|=$jqslackurl' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqslackchannel "${SLACK_CHANNEL}" '.pipeline.Slack.Channel|=$jqslackchannel' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqslackurl "${SLACK_WEBHOOK_URL}" '.prometheus.alertmanager.slack_api_url|=$jqslackurl' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqslackchannel "${SLACK_CHANNEL}" '.prometheus.alertmanager.slack_channel|=$jqslackchannel' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqsmtpaddr "${SMTP_SERVER_ADDRESS}" '.prometheus.alertmanager.smtp_address|=$jqsmtpaddr' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqsmtpuser "${SMTP_USERNAME}" '.prometheus.alertmanager.smtp_username|=$jqsmtpuser' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqsmtppass "${SMTP_PASSWORD}" '.prometheus.alertmanager.smtp_password|=$jqsmtppass' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqsmtpto "${SMTP_TO}" '.prometheus.alertmanager.smtp_to|=$jqsmtpto' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqsmtpfrom "${SMTP_FROM}" '.prometheus.alertmanager.smtp_from|=$jqsmtpfrom' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqprominguser "${PROM_ING_USER}" '.prometheus.ingress.user|=$jqprominguser' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqpromingpass "$(openssl passwd -apr1 "$PROM_ING_PASS")" '.prometheus.ingress.password|=$jqpromingpass' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqgrafanauser "${GRAFANA_USER}" '.grafana.server.adminUser|=$jqgrafanauser' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqgrafanapass "${GRAFANA_PASS}" '.grafana.server.adminPassword|=$jqgrafanapass' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqgithuborgs "${GITHUB_ORGS}" '.drone.server.env.DRONE_ORGS|=$jqgithuborgs' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqgithubclient "${GITHUB_CLIENT}" '.global.auth.clientid|=$jqgithubclient' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqgithubsecret "${GITHUB_SECRET}" '.global.auth.clientsecret|=$jqgithubsecret' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqpiplineimagetag "${PIPELINE_IMAGE_TAG}" '.pipeline.image.tag|=$jqpiplineimagetag' >  extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqHelmRetryAttempt "${PIPELINE_HELM_RETRYATTEMPT}" '.pipeline.Helm.retryAttempt|=$jqHelmRetryAttempt' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqHelmRetrySleepSeconds "${PIPELINE_HELM_RETRYSLEEPSECONDS}" '.pipeline.Helm.retrySleepSeconds|=$jqHelmRetrySleepSeconds' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | jq -r -M --arg jqHelmBanzaiRepositoryURL "${}" '.pipeline.Helm.banzaiRepositoryURL|=$jqHelmBanzaiRepositoryURL' > extra_values.tmp && mv extra_values.tmp extra_values.json
-            - |
-              cat extra_values.json | json2yaml >> extra_values.yaml
-            - |
-              helm install . -f values.yaml -f extra_values.yaml --debug --wait --timeout 600
       SecurityGroups:
         - !Ref InstanceSecurityGroup
       KeyName: !Ref KeyName
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
-            VolumeSize: '50'
-      ImageId: !Ref ImageId
+            VolumeSize: '10'
 
   InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -482,10 +168,18 @@ Resources:
           FromPort: '22'
           ToPort: '22'
           CidrIp: !Ref SSHLocation
-        - IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
-          CidrIp: !Ref HTTPLocation
+
+  WaitConditionHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+  WaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn : EC2Instance
+    Properties:
+      Handle:
+        Ref: "WaitConditionHandle"
+      Timeout: 600
+
 Outputs:
   InstanceId:
     Description: InstanceId of the newly created EC2 instance
@@ -500,47 +194,15 @@ Outputs:
     Value: !GetAtt
       - EC2Instance
       - PublicDnsName
-  PublicIP:
-    Description: Public IP address of the newly created EC2 instance
-    Value: !GetAtt
-      - EC2Instance
-      - PublicIp
-  Pipeline:
-    Description: Pipeline API Endpoint URL.
-    Value: !Join
-      - ''
-      - - 'http://'
-        - !GetAtt
-          - EC2Instance
-          - PublicIp
-        - /pipeline
-  Grafana:
+  UI:
     Description: Grafana Dashboard URL.
     Value: !Join
       - ''
-      - - 'http://'
+      - - 'https://'
         - !GetAtt
           - EC2Instance
           - PublicIp
-        - /grafana
-  PrometheusServer:
-    Description: Prometheus Server Dashboard URL.
-    Value: !Join
-      - ''
-      - - 'http://'
-        - !GetAtt
-          - EC2Instance
-          - PublicIp
-        - /prometheus
-  PrometheusAlertManager:
-    Description: Prometheus Alertmanager Dashboard URL.
-    Value: !Join
-      - ''
-      - - 'http://'
-        - !GetAtt
-          - EC2Instance
-          - PublicIp
-        - /alertmanager
+        - /
   SSH:
     Description: SSH Target
     Value: !Join
@@ -550,85 +212,40 @@ Outputs:
           - EC2Instance
           - PublicIp
         - ''
+  XXX:
+    Description: Public DNSName of the newly created EC2 instance
+    Value: !GetAtt
+      - WaitCondition
+      - Data
 Metadata:
   'AWS::CloudFormation::Interface':
     ParameterGroups:
-      - Label:
-          default: AWS Credentials
-        Parameters:
-          - AccessKeyID
-          - SecretAccessKey
-
       - Label:
           default: Control Plane Instance Config
         Parameters:
           - InstanceName
           - InstanceType
-          - ImageId
           - KeyName
+
       - Label:
-          default: Pipeline credentials
+          default: AWS Credentials for Cloudinfo
+        Parameters:
+          - AccessKeyID
+          - SecretAccessKey
+
+      - Label:
+          default: Github oauth credentials
         Parameters:
           - GithubClient
           - GithubSecret
 
       - Label:
-          default: Banzai-Ci
+          default: Github credentials
         Parameters:
+          - GithubToken
           - GithubOrgs
 
-      - Label:
-          default: Grafana Dashboard
-        Parameters:
-          - GrafanaUser
-          - GrafanaPass
-
-      - Label:
-          default: Prometheus Dashboard
-        Parameters:
-          - PromIngUser
-          - PromIngPass
-
-      - Label:
-          default: Security Options
-        Parameters:
-          - HTTPLocation
-          - SSHLocation
-
-
-      - Label:
-          default: Advanced Pipeline Options
-        Parameters:
-          - PipelineImageTag
-          - HelmRetryAttempt
-          - HelmRetrySleepSeconds
-
-      - Label:
-          default: Slack Credentials (experimental feature)
-        Parameters:
-          - SlackWebhookUrl
-          - SlackChannel
-
-      - Label:
-          default: Alert SMTP Credentials (experimental feature)
-        Parameters:
-          - SmtpServerAddress
-          - SmtpUser
-          - SmtpPassword
-          - SmtpTo
-          - SmtpFrom
-
-
     ParameterLabels:
-      PromIngUser:
-        default: Username
-      PromIngPass:
-        default: Password
-      GrafanaUser:
-        default: Username
-      GrafanaPass:
-        default: Password
-
       GithubOrgs:
         default: GitHub Orgs
       GithubClient:
@@ -636,25 +253,7 @@ Metadata:
       GithubSecret:
         default: Github Secret
 
-
       SecretAccessKey:
         default: Secret Access Key
       AccessKeyID:
         default: Access Key ID
-      SmtpServerAddress:
-        default: Server Address
-      SmtpUser:
-        default: Username
-      SmtpPassword:
-        default: Password
-      SmtpTo:
-        default: To Address
-      SmtpFrom:
-        default: From Address
-      SlackWebhookUrl:
-        default: WebHook
-      SlackChannel:
-        default: Channel
-
-      ImageId:
-        default: AWS Image ID
