@@ -151,7 +151,6 @@ Resources:
               kubeletExtraArgs:
                 cloud-provider: aws
                 hostname-override: ""
-                resolv-conf: /run/systemd/resolve/resolv.conf
               taints: []
 
             ---
@@ -177,6 +176,121 @@ Resources:
               cloud-config: /etc/kubernetes/aws.conf
             EOF
 
+
+            cat > /tmp/value.yaml.tpl <<EOF
+                global:
+                  auth:
+                    clientid: ${GithubClient}
+                    clientsecret: ${GithubSecret}
+                  pipelineHost: {{ .FQDN }}
+                  pipelineBasepath: /pipeline
+                pipeline:
+                  cache:
+                    persistence:
+                      enabled: false
+                  statestore:
+                    persistence:
+                      enabled: false
+                  metrics:
+                    enabled: false
+                    serviceMonitor:
+                      enabled: false
+                  monitor:
+                    alertRulesEnabled: false
+                  vault:
+                    unsealer:
+                      metrics:
+                        serviceMonitor:
+                          enabled: false
+                      args:
+                      - --mode
+                      - aws-kms-s3
+                      - --aws-kms-key-id
+                      - ${VaultKMSKeyID}
+                      - --aws-kms-region
+                      - ${AwsRegion}
+                      - --aws-s3-region
+                      - ${AwsRegion}
+                      - --aws-s3-bucket
+                      - ${VaultBucketName}
+                    vault:
+                      config:
+                        storage:
+                          s3:
+                            bucket: ${VaultBucketName}
+                  anchore:
+                    enabled: false
+                    serviceEndpoint: ""
+                  mysql:
+                    enabled: true
+                    mysqlDatabase: "pipeline"
+                    mysqlUser: "pipeline-rw"
+                    initializationFiles:
+                      cicd-db.sql: |-
+                        CREATE DATABASE IF NOT EXISTS drone;
+                        GRANT ALL PRIVILEGES ON drone.* TO 'pipeline-rw'@'%';
+                        FLUSH PRIVILEGES;
+                    extraVolumeMounts:
+                      - name: data-custom
+                        mountPath: /var/lib/mysql-data
+                    extraVolumes:
+                      - name: data-custom
+                        hostPath:
+                          path: /opt/pipeline/mysql
+                  database:
+                    autoMigrateEnabled: true
+                  monitor:
+                    enabled: false
+
+                cloudinfo:
+                  enabled: true
+                  providers:
+                    amazon:
+                      enabled: true
+                      awsAccessKeyId: "${AccessKeyID}"
+                      awsSecretAccessKey: "${SecretAccessKey}"
+
+                pipeline-ui:
+                  enabled: true
+                  ingress:
+                    enabled: true
+
+                telescopes:
+                  enabled: true
+
+                pipeline-cicd:
+                  enabled: true
+                  persistentVolume:
+                    enabled: false
+                  server:
+                    persistentVolume:
+                      enabled: false
+                  ingress:
+                    enabled: true
+
+                anchore-engine:
+                  enabled: true
+                  postgresql:
+                    persistence:
+                      enabled: false
+                    enabled: true
+                    postgresUser: ancore
+                    postgresDatabase: anchore
+                    postgresPassword: rand123
+
+                prometheus:
+                  enabled: false
+
+                traefik:
+                  ssl:
+                    enabled: true
+                    enforced: true
+                  imageTag: 1.7.4-alpine
+                  dashboard:
+                    enabled: false
+
+            EOF
+
             printf "[GLOBAL]\nZone="$(curl -q -s http://169.254.169.254/latest/meta-data/placement/availability-zone) > /etc/kubernetes/aws.conf
 
             apt install -y golang-go
@@ -187,9 +301,9 @@ Resources:
 
             kubeadm init --ignore-preflight-errors=SystemVerification --config=/tmp/init.conf
 
-            mkdir -p $HOME/.kube
-            cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
-            chown $(id -u):$(id -g) $HOME/.kube/config
+            mkdir -p /root/.kube
+            cp -f /etc/kubernetes/admin.conf /root/.kube/config
+            chown $(id -u):$(id -g) /root/.kube/config
 
             mkdir -p /home/ubuntu/.kube
             cp -f /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
@@ -212,7 +326,19 @@ Resources:
 
             helm install stable/traefik --version 1.52.6
 
-            curl -X PUT -H 'Content-Type: ' --data-binary '{"Status" : "SUCCESS","Reason" : "Configuration Complete", "UniqueId" : "Banzai123"}' $SIGNAL_URL
+            FQDN=$(kubectl get svc --output jsonpath="{..status.loadBalancer.ingress[*]['ip', 'hostname']}")
+            while [ -z $FQDN ]; do
+            	sleep 10
+                FQDN=$(kubectl get svc --output jsonpath="{..status.loadBalancer.ingress[*]['ip', 'hostname']}")
+            done
+
+            envtpl < /tmp/value.yaml.tpl > /tmp/value.yaml
+
+            echo $FQDN
+
+            export
+
+            curl -X PUT -H 'Content-Type: ' --data-binary '{"Status" : "SUCCESS","Reason" : "Configuration Complete", "UniqueId" : "Banzai123", "FQDN": "$FQDN"}' $SIGNAL_URL
 
           - {
               SignalUrl: !Ref WaitConditionHandle,
@@ -222,7 +348,10 @@ Resources:
               GithubClient: !Ref GithubClient,
               GithubSecret: !Ref GithubSecret,
               GithubOrgs: !Ref GithubOrgs,
-              GithubToken: !Ref GithubToken
+              GithubToken: !Ref GithubToken,
+              AwsRegion: !Ref 'AWS::Region',
+              VaultBucketName: !Ref VaultBucketName,
+              VaultKMSKeyID: !Ref VaultKMSKeyID
             }
 
       SecurityGroups:
@@ -258,7 +387,7 @@ Resources:
     Condition: HasVaultExternalInfo
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join [ "", [ !Ref "AWS::StackName" , "-vault" ] ]
+      RoleName: !Join [ "", [ !Ref "AWS::StackName" , "-pipeline-cp" ] ]
       Path: /
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -271,7 +400,7 @@ Resources:
             Action:
               - "sts:AssumeRole"
       Policies:
-        - PolicyName: !Join [ "", [ !Ref "AWS::StackName" , "-vault" ] ]
+        - PolicyName: !Join [ "", [ !Ref "AWS::StackName" , "-pipeline-cp" ] ]
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -287,6 +416,64 @@ Resources:
                 Effect: Allow
                 Resource:
                   - !Join ['', ['arn:aws:kms::', !Ref 'AWS::Region', !Ref 'AWS::AccountId', !Ref VaultKMSKeyID ]]
+              - Action: [
+                    'autoscaling:DescribeAutoScalingGroups',
+                    'autoscaling:DescribeLaunchConfigurations',
+                    'autoscaling:DescribeTags',
+                    'ec2:DescribeInstances',
+                    'ec2:DescribeRegions',
+                    'ec2:DescribeRouteTables',
+                    'ec2:DescribeSecurityGroups',
+                    'ec2:DescribeSubnets',
+                    'ec2:DescribeVolumes',
+                    'ec2:CreateSecurityGroup',
+                    'ec2:CreateTags',
+                    'ec2:CreateVolume',
+                    'ec2:ModifyInstanceAttribute',
+                    'ec2:ModifyVolume',
+                    'ec2:AttachVolume',
+                    'ec2:AuthorizeSecurityGroupIngress',
+                    'ec2:CreateRoute',
+                    'ec2:DeleteRoute',
+                    'ec2:DeleteSecurityGroup',
+                    'ec2:DeleteVolume',
+                    'ec2:DetachVolume',
+                    'ec2:RevokeSecurityGroupIngress',
+                    'ec2:DescribeVpcs',
+                    'elasticloadbalancing:AddTags',
+                    'elasticloadbalancing:AttachLoadBalancerToSubnets',
+                    'elasticloadbalancing:ApplySecurityGroupsToLoadBalancer',
+                    'elasticloadbalancing:CreateLoadBalancer',
+                    'elasticloadbalancing:CreateLoadBalancerPolicy',
+                    'elasticloadbalancing:CreateLoadBalancerListeners',
+                    'elasticloadbalancing:ConfigureHealthCheck',
+                    'elasticloadbalancing:DeleteLoadBalancer',
+                    'elasticloadbalancing:DeleteLoadBalancerListeners',
+                    'elasticloadbalancing:DescribeLoadBalancers',
+                    'elasticloadbalancing:DescribeLoadBalancerAttributes',
+                    'elasticloadbalancing:DetachLoadBalancerFromSubnets',
+                    'elasticloadbalancing:DeregisterInstancesFromLoadBalancer',
+                    'elasticloadbalancing:ModifyLoadBalancerAttributes',
+                    'elasticloadbalancing:RegisterInstancesWithLoadBalancer',
+                    'elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer',
+                    'elasticloadbalancing:AddTags',
+                    'elasticloadbalancing:CreateListener',
+                    'elasticloadbalancing:CreateTargetGroup',
+                    'elasticloadbalancing:DeleteListener',
+                    'elasticloadbalancing:DeleteTargetGroup',
+                    'elasticloadbalancing:DescribeListeners',
+                    'elasticloadbalancing:DescribeLoadBalancerPolicies',
+                    'elasticloadbalancing:DescribeTargetGroups',
+                    'elasticloadbalancing:DescribeTargetHealth',
+                    'elasticloadbalancing:ModifyListener',
+                    'elasticloadbalancing:ModifyTargetGroup',
+                    'elasticloadbalancing:RegisterTargets',
+                    'elasticloadbalancing:SetLoadBalancerPoliciesOfListener',
+                    'iam:CreateServiceLinkedRole',
+                    'kms:DescribeKey' ]
+                Effect: Allow
+                Resource: '*'
+
   InstanceProfile:
     Condition: HasVaultExternalInfo
     Type: 'AWS::IAM::InstanceProfile'
@@ -294,7 +481,7 @@ Resources:
       Path: /
       Roles:
         - !Ref VaultRole
-      InstanceProfileName: vault
+      InstanceProfileName: !Join [ "", [ !Ref "AWS::StackName" , "-pipeline-cp" ] ]
 
 Outputs:
   InstanceId:
