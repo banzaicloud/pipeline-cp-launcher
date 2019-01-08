@@ -3,8 +3,39 @@ Description: >-
   AWS CloudFormation Pipeline Control Plane
 Mappings:
   RegionMap:
+    ap-northeast-1:
+      ami: ami-02c2df979feea2aea
+    ap-northeast-2:
+      ami: ami-0aa972d86814a8a3f
+    ap-south-1:
+      ami: ami-0bf3cb591417153e0
+    ap-southeast-1:
+      ami: ami-0d036a8c721d7576e
+    ap-southeast-2:
+      ami: ami-071f8ba5202010546
+    ca-central-1:
+      ami: ami-00b773e3269c8f032
+    eu-central-1:
+      ami: ami-05bfb95161aee6066
+    eu-north-1:
+      ami: ami-0a01456c818b3134c
     eu-west-1:
-      AMI: "ami-02d95b6fee2869fc7"
+      ami: ami-02dbb9c30a1441c02
+    eu-west-2:
+      ami: ami-0b890d6e2fe748e66
+    eu-west-3:
+      ami: ami-00299f38a91848982
+    sa-east-1:
+      ami: ami-0968a32ad8b537088
+    us-east-1:
+      ami: ami-02b8db8c1fe3fc06d
+    us-east-2:
+      ami: ami-011101b52fb059fcc
+    us-west-1:
+      ami: ami-06a6b07d6e4a3c0b9
+    us-west-2:
+      ami: ami-0fde050429dd5076e
+
 Parameters:
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
@@ -114,7 +145,7 @@ Resources:
     Type: 'AWS::EC2::Instance'
     Properties:
       InstanceType: !Ref InstanceType
-      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", ami]
       IamInstanceProfile: !Ref InstanceProfile
       Tags:
         - Key: Name
@@ -182,10 +213,6 @@ Resources:
             EOF
 
             printf "[GLOBAL]\nZone="$(curl -q -s http://169.254.169.254/latest/meta-data/placement/availability-zone) > /etc/kubernetes/aws.conf
-
-            apt install -y golang-go
-
-            GOPATH=/tmp/go go get github.com/subfuzion/envtpl && mv /tmp/go/bin/envtpl /usr/local/bin/envtpl
 
             envtpl < /tmp/init.conf.tpl > /tmp/init.conf
 
