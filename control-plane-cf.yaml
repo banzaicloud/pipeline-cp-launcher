@@ -484,7 +484,7 @@ Resources:
             EOF
             envtpl < /tmp/vault.yaml.tpl > /tmp/vault.yaml
 
-            helm upgrade --install cp-vault banzaicloud-stable/vault --version 0.5.22 --wait -f /tmp/vault.yaml
+            helm upgrade --install cp-vault banzaicloud-stable/vault --version 0.5.23 --wait -f /tmp/vault.yaml
 
             curl -X PUT -H 'Content-Type: ' --data-binary "{\"Status\":\"SUCCESS\",\"Reason\":\"Configuration Complete\",\"UniqueId\":\"$(date +%s)\"}" $SIGNAL_URL
 
