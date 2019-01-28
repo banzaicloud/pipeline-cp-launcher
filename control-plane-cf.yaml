@@ -387,6 +387,9 @@ Resources:
                 enabled: true
                 hosts:
                  - "{{ .ELB }}/ui"
+                annotations:
+                  kubernetes.io/ingress.class: traefik
+                  kubernetes.io/ingress.ssl-redirect: "true"
               extraEnv:
                 - name: CREATE_ISSUE_DISABLED
                   value: true
@@ -406,6 +409,9 @@ Resources:
                 enabled: true
                 hosts:
                  - "{{ .ELB }}/recommender"
+                annotations:
+                  kubernetes.io/ingress.class: traefik
+                  kubernetes.io/ingress.ssl-redirect: "true"
             EOF
             envtpl < /tmp/telescopes.yaml.tpl > /tmp/telescopes.yaml
 
@@ -425,6 +431,7 @@ Resources:
                 - "{{ .ELB }}/build"
                 annotations:
                   kubernetes.io/ingress.class: traefik
+                  kubernetes.io/ingress.ssl-redirect: "true"
                   traefik.frontend.rule.type: PathPrefixStrip
               mysql:
                 host: "cp-mysql"
@@ -553,7 +560,7 @@ Resources:
               ingress:
                 annotations:
                   kubernetes.io/ingress.class: traefik
-                  kubernetes.io/ingress.ssl-redirect: "false"
+                  kubernetes.io/ingress.ssl-redirect: "true"
                 enabled: true
                 hosts:
                 - {{ .ELB }}/
@@ -576,6 +583,9 @@ Resources:
               github:
                 token: {{ .GITHUB_TOKEN }}
             EOF
+
+            envtpl < /tmp/pipeline.yaml.tpl > /tmp/pipeline.yaml
+            helm upgrade --install cp-pipeline banzaicloud-stable/pipeline --version 0.1.5 --wait -f /tmp/pipeline.yaml
 
             curl -X PUT -H 'Content-Type: ' --data-binary "{\"Status\":\"SUCCESS\",\"Reason\":\"Configuration Complete\",\"UniqueId\":\"$(date +%s)\"}" $SIGNAL_URL
 
