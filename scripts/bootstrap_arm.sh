@@ -119,9 +119,8 @@ chown $(id -u):$(id -g) /root/.kube/config
 export KUBECONFIG=/root/.kube/config
 
 until kubectl get po --all-namespaces
-do
-  sleep 5
-  echo "Waiting...."
+do echo "($0:$LINENO) Waiting..."
+   sleep 5
 done
 
 kubectl taint nodes $(hostname -s) node-role.kubernetes.io/master:NoSchedule-
