@@ -1,4 +1,4 @@
-# NOTE:
+# Deprecation Notice:
 
 > This repository is now outdated please use follow the [documentation here](https://banzaicloud.com/docs/pipeline/quickstart/install-pipeline/) to install Pipeline with the [Banzai CLI](https://github.com/banzaicloud/banzai-cli).
  
